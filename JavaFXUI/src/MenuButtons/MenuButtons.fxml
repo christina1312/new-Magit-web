@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="602.0" prefWidth="747.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MenuButtons.MenuButtonsController">
+   <children>
+      <VBox layoutX="-7.0" layoutY="81.0" prefHeight="391.0" prefWidth="262.0">
+         <children>
+            <AnchorPane prefHeight="186.0" prefWidth="262.0">
+               <children>
+                  <Button fx:id="ChangeUserNameButton" layoutX="29.0" layoutY="42.0" mnemonicParsing="false" onAction="#onChangeUserName" prefHeight="26.0" prefWidth="204.0" text="Change user name" />
+                  <Button fx:id="LoadNewRepositoryFromXMLFileButton" layoutX="29.0" layoutY="68.0" mnemonicParsing="false" onAction="#onLoadNewRepositoryFromXMLFile" prefHeight="26.0" prefWidth="204.0" text="Load new repository from XML file" />
+                  <Button fx:id="InitializeNewRepositoryButton" layoutX="29.0" layoutY="94.0" mnemonicParsing="false" onAction="#onInitializeNewRepository" prefHeight="26.0" prefWidth="204.0" text="Initialize new repository" />
+                  <Button fx:id="ChangeRepositoryButton" layoutX="29.0" layoutY="120.0" mnemonicParsing="false" onAction="#onChangeRepository" prefHeight="26.0" prefWidth="204.0" text="Change repository" />
+                  <Button fx:id="ExportRepositoryForNewXMLFileButton" layoutX="29.0" layoutY="146.0" mnemonicParsing="false" onAction="#onExportRepositoryForNewXMLFile" prefHeight="20.0" prefWidth="204.0" text="Export repository for new XML file" />
+                  <Label fx:id="RepositoryOperationsLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="32.0" layoutY="14.0" prefHeight="18.0" prefWidth="198.0" text="Repository operations" textFill="#497ee8">
+                     <font>
+                        <Font name="System Bold Italic" size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </AnchorPane>
+            <AnchorPane prefHeight="125.0" prefWidth="262.0">
+               <children>
+                  <Button fx:id="ShowCurrentCommitFileSystemButton" layoutX="29.0" layoutY="50.0" mnemonicParsing="false" onAction="#onShowCurrentCommitFileSystem" prefHeight="26.0" prefWidth="204.0" text="Show current commit file system" />
+                  <Button fx:id="DoCommitButton" layoutX="29.0" layoutY="75.0" mnemonicParsing="false" onAction="#DoCommit" prefHeight="20.0" prefWidth="204.0" text="Do commit" />
+                  <Label fx:id="FileOrCommitOperationsLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="32.0" layoutY="24.0" prefHeight="18.0" prefWidth="198.0" text="File\commit operations" textFill="#497ee8">
+                     <font>
+                        <Font name="System Bold Italic" size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </AnchorPane>
+            <AnchorPane prefHeight="188.0" prefWidth="262.0">
+               <children>
+                  <Button fx:id="ShowBranchesFileSystemButton" layoutX="29.0" layoutY="50.0" mnemonicParsing="false" onAction="#onShowBranchesFileSystem" prefHeight="26.0" prefWidth="204.0" text="Show branches file system" />
+                  <Button fx:id="CreateNewBranchButton" layoutX="29.0" layoutY="75.0" mnemonicParsing="false" onAction="#onCreateNewBranch" prefHeight="26.0" prefWidth="204.0" text="Create new branch" />
+                  <Label fx:id="BranchOperationsLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="32.0" layoutY="24.0" prefHeight="18.0" prefWidth="198.0" text="Branch operations" textFill="#497ee8">
+                     <font>
+                        <Font name="System Bold Italic" size="14.0" />
+                     </font>
+                  </Label>
+                  <Button fx:id="DeleteBranchButton" layoutX="29.0" layoutY="101.0" mnemonicParsing="false" onAction="#onDeleteBranch" prefHeight="26.0" prefWidth="204.0" text="Delete branch" />
+                  <Button fx:id="ResetBranchLocationButton" layoutX="29.0" layoutY="127.0" mnemonicParsing="false" onAction="#onResetBranchLocation" prefHeight="26.0" prefWidth="204.0" text="Reset branch location" />
+               </children>
+            </AnchorPane>
+         </children>
+      </VBox>
+      <Label fx:id="statusLabel" layoutX="560.0" layoutY="129.0" prefHeight="50.0" prefWidth="185.0" />
+      <ScrollPane layoutX="326.0" layoutY="217.0" prefHeight="154.0" prefWidth="402.0">
+         <content>
+            <TextArea fx:id="inputArea" prefHeight="151.0" prefWidth="404.0" />
+         </content>
+      </ScrollPane>
+      <Label fx:id="progressPercentLabel" layoutX="401.0" layoutY="123.0" prefHeight="18.0" prefWidth="114.0" />
+      <ProgressBar fx:id="ProgressBarXml" layoutX="306.0" layoutY="152.0" prefWidth="200.0" progress="0.0" />
+      <Label fx:id="commandLabel" layoutX="342.0" layoutY="179.0" prefHeight="26.0" prefWidth="204.0" />
+      <ScrollPane layoutX="326.0" layoutY="379.0" prefHeight="193.0" prefWidth="402.0">
+         <content>
+            <Label fx:id="outputLabel" prefHeight="175.0" prefWidth="390.0" />
+         </content>
+      </ScrollPane>
+   </children>
+</AnchorPane>
