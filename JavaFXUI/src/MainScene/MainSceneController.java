@@ -23,7 +23,7 @@ public class MainSceneController {
     private Parent m_root;
 
     private Task<Boolean> fileLoadTask;
-    boolean m_isGameLoaded;
+    private boolean m_isGameLoaded;
     private File m_file;
 
     private final static int SLEEP_PERIOD = 100;
@@ -141,6 +141,19 @@ public class MainSceneController {
     private ScrollPane originScroll;
     @FXML
     private ScrollPane afterMergeScroll;
+    @FXML
+    private Tab RepositirySettingsTab;
+    @FXML
+    private Tab FilesAndCommitTab;
+    @FXML
+    private Tab BranchesTab;
+    @FXML
+    private Tab MergaTab;
+    @FXML
+    private Tab CollabortionTab;
+    @FXML
+    private TabPane tabPane;
+
 
     private BasicMAGitManager logic;
 
@@ -162,6 +175,8 @@ public class MainSceneController {
         turnOffDeleteScrollBranchTab();
         turnOffMergeLabels();
         InfoCollaborationLabel.setVisible(false);
+
+
     }
 
     public void onLoadNewRepositoryFromXMLFile() {
@@ -188,6 +203,47 @@ public class MainSceneController {
         }
         turnOffLabelsSettingTab();
     }
+
+    private Task<Boolean> LoadNewRepositoryFromXMLFileTask(File fileIn) {
+        return new Task<Boolean>() {
+            @Override
+            protected Boolean call() {
+                try {
+                    for (int i = 0; i < SLEEP_INTERVAL; i++) {
+                        Thread.sleep(SLEEP_PERIOD);
+                        updateMessage("Loading file... " + ((float) i / SLEEP_INTERVAL) * 100 + "%");
+                        updateProgress(i + 1, SLEEP_INTERVAL);
+                    }
+
+                    if(logic.LoadMAGit(fileIn.getAbsolutePath())) {
+                        if (AlertPromptDialog.show(m_Stage, "There is repository in the given location. What do you want to do next?", "load") == 0) {
+                            logic.DeleteRepositoryAndCreateNew(fileIn.getAbsolutePath());
+                        } else { // == 1
+                            //the user need to do commit in commit iab!!
+                            logic.ChangeRepository(fileIn.getAbsolutePath());
+                        }
+                    }
+                    m_isGameLoaded = true;
+                    ChangeUserNameButton.setDisable(false);
+                } catch (Exception e) {
+                    InfoLabel.setVisible(true);
+                    String s = e.getMessage();
+                    Platform.runLater(() -> InfoLabel.setText("Error : " + s));
+                    m_isGameLoaded = false;
+                } finally {
+                    Platform.runLater(() -> ProgressBarXml.setVisible(false));
+                    Platform.runLater(() -> progressPercentLabel.setVisible(false));
+
+                    if (m_isGameLoaded) {
+                        InfoLabel.setVisible(true);
+                        Platform.runLater(() -> InfoLabel.setText("File was loaded successfully!"));
+                    }
+                }
+                return true;
+            }
+        };
+    }
+
 
     public void onChangeRepository() {
         turnOffLabelsSettingTab();
@@ -219,60 +275,29 @@ public class MainSceneController {
 
         EventHandler<ActionEvent> event = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
-                try {
-                    logic.createNewRepository(inputTextField.getText());
-                    turnOffLabelsSettingTab();
-                    m_isGameLoaded = true;
-                    ChangeUserNameButton.setDisable(false);
-                    InfoLabel.setVisible(true);
-                    InfoLabel.setText("The new repository has been created successfully!");
-                } catch (Exception ex) {
-                    turnOffLabelsSettingTab();
-                    InfoLabel.setVisible(true);
-                    InfoLabel.setText("Error: " + ex + "\n An error occurred while trying to creat a new repository!");
-                }
+
+                Platform.runLater(() -> {
+                    try {
+                        logic.createNewRepository(inputTextField.getText());
+                        m_isGameLoaded = true;
+                        ChangeUserNameButton.setDisable(false);
+                        turnOffLabelsSettingTab();
+                        makeTabsVisible();
+                        InfoLabel.setVisible(true);
+                        InfoLabel.setText("The new repository has been created successfully!");
+
+                    } catch (IOException ex) {
+                        turnOffLabelsSettingTab();
+                        InfoLabel.setVisible(true);
+                        InfoLabel.setText("Error: " + ex + "\n An error occurred while trying to creat a new repository!");
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                });
             }
         };
         saveButton.setOnAction(event);
-    }
-
-    private Task<Boolean> LoadNewRepositoryFromXMLFileTask(File fileIn) {
-        return new Task<Boolean>() {
-            @Override
-            protected Boolean call() throws Exception {
-                try {
-                    for (int i = 0; i < SLEEP_INTERVAL; i++) {
-                        Thread.sleep(SLEEP_PERIOD);
-                        updateMessage("Loading file... " + ((float) i / SLEEP_INTERVAL) * 100 + "%");
-                        updateProgress(i + 1, SLEEP_INTERVAL);
-                    }
-
-                    logic.LoadMAGit(fileIn.getAbsolutePath());
-                    if (AlertPromptDialog.show(m_Stage, "There is repository in the given location. \\n What do you want to do next?", "load") == 0) {
-                        logic.DeleteRepositoryAndCreateNew(fileIn.getAbsolutePath());
-                    } else { // == 1
-                        //the user need to do commit in commit iab!!
-                        logic.ChangeRepository(fileIn.getAbsolutePath());
-                    }
-                    m_isGameLoaded = true;
-                    ChangeUserNameButton.setDisable(false);
-                } catch (Exception e) {
-                    InfoLabel.setVisible(true);
-                    String s = e.getMessage();
-                    Platform.runLater(() -> InfoLabel.setText("Error : " + s));
-                    m_isGameLoaded = false;
-                } finally {
-                    InfoLabel.setVisible(true);
-                    Platform.runLater(() -> ProgressBarXml.setVisible(false));
-                    Platform.runLater(() -> progressPercentLabel.setVisible(false));
-
-                    if (m_isGameLoaded) {
-                        Platform.runLater(() -> InfoLabel.setText("File was loaded successfully!"));
-                    }
-                }
-                return true;
-            }
-        };
     }
 
     private Task<Boolean> ChangeRepositoryTask(File fileIn) {
@@ -298,6 +323,7 @@ public class MainSceneController {
                     InfoLabel.setVisible(true);
                     Platform.runLater(() -> ProgressBarXml.setVisible(false));
                     Platform.runLater(() -> progressPercentLabel.setVisible(false));
+                    Platform.runLater(() -> makeTabsVisible());
 
                     if (m_isGameLoaded) {
                         Platform.runLater(() -> InfoLabel.setText("The repository has been changed successfully!"));
@@ -312,7 +338,7 @@ public class MainSceneController {
     private Task<Boolean> cloneRepositoryTask(File fileIn) {
         return new Task<Boolean>() {
             @Override
-            protected Boolean call() throws Exception {
+            protected Boolean call() {
                 try {
                     logic.cloneRepository(fileIn.getAbsolutePath(),"","");
                 } catch (Exception e) {
@@ -535,18 +561,18 @@ public class MainSceneController {
 //                }
 //            }
 //        };
- //       deleteButton.setOnAction(event);
+        //       deleteButton.setOnAction(event);
         try {
 
             if(logic.merge(branchToDeleteText.getText())){
-                        if(AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "checkout")==0){
-                            logic.deleteWorkingCopyChanges();
-                            logic.CheckoutHeadBranch(branchToDeleteText.getText());
-                        }
-                        else{
-                            //the user need to do commit in commit iab!!
-                        }
-                    }
+                if(AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "checkout")==0){
+                    logic.deleteWorkingCopyChanges();
+                    logic.CheckoutHeadBranch(branchToDeleteText.getText());
+                }
+                else{
+                    //the user need to do commit in commit iab!!
+                }
+            }
             turnOffMergeLabels();
             mergeLabel.setVisible(true);
             mergeLabel.setText("The new branch created successfully!");
@@ -560,7 +586,7 @@ public class MainSceneController {
     public void onCheckConflicts() {
         try {
             if (logic.merge(branchMergeText.getText())) {
-                if (AlertPromptDialog.show(m_Stage, "There is repository in the given location. \\n What do you want to do next?" , "conflict") == 0) {
+                if (AlertPromptDialog.show(m_Stage, "There is repository in the given location. What do you want to do next?" , "conflict") == 0) {
                     logic.deleteNotMagitDir();
                 } else { // == 1 : commit
                     //the user need to do commit in commit iab!!
@@ -605,6 +631,7 @@ public class MainSceneController {
 
     private void turnOnLabelsSettingTab() {
         InfoLabel.setVisible(true);
+        InfoLabel.setText("");
         inputTextField.setVisible(true);
         saveButton.setVisible(true);
         saveButton.setText("Save");
@@ -764,5 +791,12 @@ public class MainSceneController {
         checkConflictsButton.setVisible(true);
         branchMergeText.setVisible(true);
         branchMergeLabel.setVisible(true);
+    }
+
+    private void makeTabsVisible(){
+        FilesAndCommitTab.setDisable(false);
+        BranchesTab.setDisable(false);
+        MergaTab.setDisable(false);
+        CollabortionTab.setDisable(false);
     }
 }

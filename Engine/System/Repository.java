@@ -107,12 +107,15 @@ public class Repository {
         });
     }
 
-    public void LoadMAGit(String xmlPath) throws Exception {
-        LoadFile(xmlPath);
+    public boolean LoadMAGit(String xmlPath) throws Exception {
+        if(LoadFile(xmlPath))
+            return true;
         if (!checkIfEmptyRepository() && !repositoryChanged) {
             ZipAllItemInRepository(this.location + "\\.magit\\objects");
             CreateWC();
         }
+
+        return false;
     }
 
     public void ChangeRepository(String path) throws Exception {
@@ -509,20 +512,20 @@ public class Repository {
     private void switchBranch(String branchName) throws Exception {
         Branch branch;
 
-            for (Branch currBranch : branchesList) {
-                if (currBranch.getName().equalsIgnoreCase(branchName)) {
-                    File[] filesRepo = new File(location).listFiles();
-                    for (File currFile : filesRepo) {
-                        if (!currFile.getName().equalsIgnoreCase(".magit")) {
-                            deleteDirectory(currFile);
-                        }
+        for (Branch currBranch : branchesList) {
+            if (currBranch.getName().equalsIgnoreCase(branchName)) {
+                File[] filesRepo = new File(location).listFiles();
+                for (File currFile : filesRepo) {
+                    if (!currFile.getName().equalsIgnoreCase(".magit")) {
+                        deleteDirectory(currFile);
                     }
-                    branch = currBranch;
-                    createWCRec(branch.getpCommit().getRootFolder(), this.getLocation(), true);
-                    Utility.writeToFile(branchName, location + "\\.magit\\branches\\HEAD.txt");
-                    this.activeBranch = branch;
                 }
+                branch = currBranch;
+                createWCRec(branch.getpCommit().getRootFolder(), this.getLocation(), true);
+                Utility.writeToFile(branchName, location + "\\.magit\\branches\\HEAD.txt");
+                this.activeBranch = branch;
             }
+        }
     }
 
     public void ShowActiveBranchHistory() {
@@ -552,7 +555,7 @@ public class Repository {
     }
 
     // Aux function !!
-    private void LoadFile(String xmlPath) throws Exception {
+    private boolean LoadFile(String xmlPath) throws Exception {
 
         File file = new File(xmlPath);
         try {
@@ -563,7 +566,8 @@ public class Repository {
             magitRepository = deserializeFromFile(file); // need to from repository
 
             if (magitRepository != null) {
-                CreateRealRepository(magitRepository.getLocation());
+                if(CreateRealRepository(magitRepository.getLocation()))
+                    return true;
 
             } else
                 throw new Exception("The xml invalid! \n");
@@ -572,6 +576,8 @@ public class Repository {
         } catch (Exception ex) {
             throw ex;
         }
+
+        return false;
     }
 
     public void ZipAllItemInRepository(String path) throws IOException {
@@ -603,7 +609,6 @@ public class Repository {
     private boolean CreateRealRepository(String address) throws Exception {
 
         validateXmlFile();
-        int inputFromUser;
         File directory = new File(address);
         File subDirectory = new File(directory.getPath() + "\\.magit");
         File[] filesRepo = new File(address).listFiles();
@@ -614,7 +619,7 @@ public class Repository {
         } else// there is no .magit
         {
             if (filesRepo != null ? filesRepo.length > 0 : false) {
-                throw new Exception("The is already files in this location. You cannot create repository there !");
+                return true; // repo exists
             } else {
                 buildRepositoryinGivenPath();
             }

@@ -16,9 +16,9 @@ public class BasicMAGitManager {
     }
 
     //chris
-    public void LoadMAGit(String xmlPath) throws Exception {
+    public boolean LoadMAGit(String xmlPath) throws Exception {
         if (checkIfPathExists(xmlPath)) {
-            repository.LoadMAGit(xmlPath);
+            return repository.LoadMAGit(xmlPath);
         }
         else
             throw new Exception("Could not find file in this path");
@@ -111,7 +111,7 @@ public class BasicMAGitManager {
     }
 
     public boolean merge(String branchToMerge) throws Exception {
-      return repository.merge(branchToMerge);
+        return repository.merge(branchToMerge);
     }
     public void cloneRepository(String pathRR, String pathLR, String RepositoryName) throws Exception {
         repository.cloneRepository(pathRR, pathLR, RepositoryName);

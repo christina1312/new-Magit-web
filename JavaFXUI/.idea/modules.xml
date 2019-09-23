@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../Engine/Engine1.iml" filepath="$PROJECT_DIR$/../Engine/Engine1.iml" />
-      <module fileurl="file://$PROJECT_DIR$/JavaFXUI.iml" filepath="$PROJECT_DIR$/JavaFXUI.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Engine/Engine.iml" filepath="$PROJECT_DIR$/../Engine/Engine.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JavaFXUI1.iml" filepath="$PROJECT_DIR$/JavaFXUI1.iml" />
     </modules>
   </component>
 </project>

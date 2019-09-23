@@ -1,5 +1,6 @@
 package MainScene;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -15,6 +16,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+
+import static com.sun.javafx.scene.control.skin.Utils.getResource;
 
 public class AlertPromptDialog extends Stage {
     private static final int WIDTH_DEFAULT = 400;
@@ -43,6 +46,7 @@ public class AlertPromptDialog extends Stage {
         Button commitButton;
 
         continueButton = new Button("Continue (all changes will be deleted)");
+        continueButton.setMinSize(100, 50);
         continueButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -52,17 +56,19 @@ public class AlertPromptDialog extends Stage {
         });
 
         if(type.equalsIgnoreCase("checkout")){
-        commitButton = new Button("Commit the changes");
-        commitButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                result = 1;
-                AlertPromptDialog.this.close();
-            }
-        });
-    }
+            commitButton = new Button("Commit the changes");
+            commitButton.setMinSize(100, 30);
+            commitButton.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    result = 1;
+                    AlertPromptDialog.this.close();
+                }
+            });
+        }
         else if(type.equalsIgnoreCase("load")){
-            commitButton = new Button("Delete the existing repository and create new repository.");
+            commitButton = new Button("Delete the existing repository and create new repository");
+            commitButton.setMinSize(300, 30);
             commitButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
@@ -71,7 +77,8 @@ public class AlertPromptDialog extends Stage {
                 }
             });
 
-            continueButton = new Button("Use the existing repository.");
+            continueButton = new Button("Use the existing repository");
+            continueButton.setMinSize(100, 30);
             continueButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
@@ -83,6 +90,7 @@ public class AlertPromptDialog extends Stage {
         }
         else{
             commitButton = new Button("Cancel");
+            continueButton.setMinSize(100, 30);
             commitButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
@@ -105,32 +113,34 @@ public class AlertPromptDialog extends Stage {
         dropShadowPane.setBottom(hbox);
         borderPane.setCenter(dropShadowPane);
 
+
         Scene scene = new Scene(borderPane);
-        //scene.getStylesheets().add(getResource("alert.css").toExternalForm());
+        //  scene.getStylesheets().add(getResource("Alert.css").toExternalForm());
         scene.setFill(Color.TRANSPARENT);
         setScene(scene);
     }
 
     public static int show(Stage owner, String msg,String type) {
-        if (popup == null) {
-            popup = new AlertPromptDialog(type);
-        }
-        label.setText(msg);
+        Platform.runLater(()->{
+            if (popup == null) {
+                popup = new AlertPromptDialog(type);
+            }
+            label.setText(msg);
 
-        // calculate width of string
-        final Text text = new Text(msg);
-        text.snapshot(null, null);
-        int width = (int) text.getLayoutBounds().getWidth() + 60;
-        int height = 120;
+            // calculate width of string
+            final Text text = new Text(msg);
+            text.snapshot(null, null);
+            int width = (int) text.getLayoutBounds().getWidth()+150;
+            int height = 120;
 
-        popup.setWidth(width);
-        popup.setHeight(height);
+            popup.setWidth(width);
+            popup.setHeight(height);
 
-        // make sure this stage is centered on top of its owner
-        popup.setX(owner.getX() + (owner.getWidth() / 2 - popup.getWidth() / 2));
-        popup.setY(owner.getY() + (owner.getHeight() / 2 - popup.getHeight() / 2));
-        popup.showAndWait();
-
+            // make sure this stage is centered on top of its owner
+            popup.setX(owner.getX() + (owner.getWidth() / 2 - popup.getWidth() / 2));
+            popup.setY(owner.getY() + (owner.getHeight() / 2 - popup.getHeight() / 2 -80));
+            popup.showAndWait();
+        });
         return result;
     }
 
