@@ -39,6 +39,14 @@ public class Repository {
     private Set<String> hashFolder;
     private Set<String> hashCommit;
     private Set<String> hashBranch;
+    private static int headBranchChangesIndex = 0;
+    private static int branchToMergeChangesIndex = 0;
+    private static List<Item> branchToMergeChanges;
+    private static List<Item> headBranchChanges;
+    private static Commit commitAfterMerge;
+    private boolean headBranchConflict=true;
+    private boolean branchToMergeConflict=true;
+    private boolean isInternalBranchFolderCreated=false;
 
     public Repository(User user){
         branchesList = new ArrayList<>();
@@ -747,13 +755,28 @@ public class Repository {
     private void CreateBranchesFiles() throws IOException {
         String delimiter = ", ";
         String path = branchPath;
+        String nameOfBranch;
+        File file;
+
         for (Branch branch : this.getBranchesList()) {
+            nameOfBranch=branch.getName();
             String branchToString = sha1Hex(branch.getpCommit().toString()) + delimiter + branch.isRemote() +
                     delimiter + branch.isTracking() + delimiter + branch.getTrackingAfter();
-
-            File file = new File(path + branch.getName() + ".txt");
-            file.createNewFile();
-            Utility.writeToFile(branchToString, branchPath + branch.getName() + ".txt");
+            if (nameOfBranch.contains("\\")) {
+                String[] partsForName = branch.getName().split("\\\\");
+                if (!isInternalBranchFolderCreated) {
+                    new File(path + partsForName[0]).mkdirs();
+                    isInternalBranchFolderCreated =true;
+                }
+                file = new File(path + partsForName[0] + "\\" + partsForName[1]+ ".txt");
+                file.createNewFile();
+                Utility.writeToFile(branchToString, branchPath +"\\" + partsForName[0] + "\\" + partsForName[1]+".txt");
+            }
+            else {
+                file = new File(path + nameOfBranch + ".txt");
+                file.createNewFile();
+                Utility.writeToFile(branchToString, branchPath + branch.getName() + ".txt");
+            }
         }
     }
 
@@ -780,8 +803,8 @@ public class Repository {
                     isActive, branch.isIsRemote(), branch.isTracking(), branch.getTrackingAfter());
             if (branch.getName().equalsIgnoreCase(head.toUpperCase())) {
                 this.setActiveBranch(currentBranch);
-                this.addItemToBranchList(currentBranch);
             }
+            this.addItemToBranchList(currentBranch);
         }
     }
 
@@ -1467,8 +1490,8 @@ public class Repository {
             ancestorCommit = findAncestorFather(branchToMerge.getpCommit());
             List<Item> headBranchChanges = compareToAncestorFather(this.getActiveBranch().getpCommit(), ancestorCommit);
             List<Item> branchToMergeChanges = compareToAncestorFather(branchToMerge.getpCommit(), ancestorCommit);
-            Commit resCommit = ancestorCommit;
-            Commit commitAfterMerge = handleConflicts(headBranchChanges, branchToMergeChanges, resCommit);
+            //Commit commitAfterMerge = handleConflicts(headBranchChanges, branchToMergeChanges, ancestorCommit);
+            Commit commitAfterMerge=null;
             commitsList.add(commitAfterMerge);
             Utility.writeToFile(sha1Hex(this.activeBranch.getpCommit().toString()), branchPath + this.activeBranch.getName() + ".txt");
             activeBranch.setpCommit(commitAfterMerge);
@@ -1478,6 +1501,61 @@ public class Repository {
         CreateWC();
 
         return false;
+    }
+
+
+    public ArrayList<String> startMerge(String branchNameToMerge) throws Exception {
+        Branch branchToMerge;
+        Commit ancestorCommit;
+        ArrayList<String> resList = new ArrayList<>();
+        try {
+            branchToMerge = findBranchByName(branchNameToMerge);
+            if (branchToMerge == null || branchNameToMerge == "") {
+                throw new Exception("branch was not found");
+            }
+        } catch (Exception ex) {
+            throw ex;
+        }
+
+        Boolean isThereOpenChanges = true;
+        File file = new File(location);
+        Folder newFolder = createCommittedWC(file);
+        if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) {
+            isThereOpenChanges = false;
+        }
+        if (isThereOpenChanges) {
+            resList.add("TRUE");
+            return resList;
+        }
+        try {
+            ancestorCommit = findAncestorFather(branchToMerge.getpCommit());
+            headBranchChanges = compareToAncestorFather(this.getActiveBranch().getpCommit(), ancestorCommit);
+            branchToMergeChanges = compareToAncestorFather(branchToMerge.getpCommit(), ancestorCommit);
+            commitAfterMerge = ancestorCommit;
+            return handleConflicts(headBranchChanges, branchToMergeChanges, commitAfterMerge);
+        } catch (Exception ex) {
+            throw new Exception("Could not find commit for merge!");
+        }
+    }
+
+    public void setAfterMerge() throws IOException {
+        setCommitAfterMerge(commitAfterMerge);
+        deleteNotMagitDir();
+        CreateWC();
+    }
+
+    public void handleSingleConflict(String content) throws IOException {
+        branchToMergeChangesIndex++;
+        headBranchChangesIndex++;
+        Blob headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex);
+        Blob blob = createNewBlobForMerge(Item.TypeOfChangeset.NEW, content, headBranchBlob);
+        commitAfterMerge.updateBlobInCommit(blob);
+    }
+
+    public void setCommitAfterMerge( Commit commitAfterMerge) throws IOException {
+        commitsList.add(commitAfterMerge);
+        Utility.writeToFile(sha1Hex(this.activeBranch.getpCommit().toString()), branchPath + this.activeBranch.getName() + ".txt");
+        activeBranch.setpCommit(commitAfterMerge);
     }
 
     private Branch findBranchByName(String branchNameToMerge) {
@@ -1598,9 +1676,10 @@ public class Repository {
         return null;
     }
 
-    private Commit handleConflicts(List<Item> headBranchChanges, List<Item> branchToMergeChanges, Commit commitAfterMerge) throws IOException {
-        Blob headBranchBlob = null;
-        Blob branchToMergeBlob = null;
+    private ArrayList<String> handleConflicts(List<Item> headBranchChanges, List<Item> branchToMergeChanges, Commit commitAfterMerge) throws IOException {
+        Blob headBranchBlob;
+        Blob branchToMergeBlob;
+        ArrayList<String> solvedConflictBlob=null;
         headBranchChanges.sort(new Comparator<Item>() {
             public int compare(Item i1, Item i2) {
                 String comparePath = (i1).getPath();
@@ -1613,9 +1692,10 @@ public class Repository {
                 return comparePath.compareTo(i2.getPath());
             }
         });
-        int headBranchChangesIndex = 0, branchToMergeChangesIndex = 0;
+
         int headBranchChangesSize = headBranchChanges.size(), branchToMergeChangesSize = branchToMergeChanges.size();
-        while (headBranchChangesIndex != headBranchChangesSize && branchToMergeChangesIndex != branchToMergeChangesSize) {
+
+        if (headBranchChangesIndex != headBranchChangesSize && branchToMergeChangesIndex != branchToMergeChangesSize) {
             headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex);
             branchToMergeBlob = (Blob) branchToMergeChanges.get(branchToMergeChangesIndex);
             if (headBranchBlob.getPath().compareTo(branchToMergeBlob.getPath()) > 0) {
@@ -1626,26 +1706,61 @@ public class Repository {
                 headBranchChangesIndex++;
             } else {
                 Blob blobInAncestorFather = findBlobInRootFolder(commitAfterMerge.getRootFolder(), headBranchBlob.getPath());
-                Blob solvedConflictBlob = solveConflicts(headBranchBlob, branchToMergeBlob, blobInAncestorFather);
-
-                solvedConflictBlob.setPath(headBranchBlob.getPath());
-                commitAfterMerge.updateBlobInCommit(solvedConflictBlob);
-                branchToMergeChangesIndex++;
-                headBranchChangesIndex++;
+                solvedConflictBlob = solveConflictsForUI(headBranchBlob, branchToMergeBlob, blobInAncestorFather);
             }
         }
 
-        while (headBranchChangesIndex != headBranchChangesSize) {
+        headBranchChangeLoop(headBranchChangesSize, commitAfterMerge,headBranchChanges);
+        branchToMergeChangesLoop(branchToMergeChangesSize,commitAfterMerge, branchToMergeChanges);
+
+        return solvedConflictBlob;
+    }
+
+    public Blob createNewBlobForMerge(Item.TypeOfChangeset type , String content, Blob headBranchBlob){
+        Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
+        blob.setTypeOfChangeset(type);
+        blob.setPath(headBranchBlob.getPath());
+
+        return blob;
+    }
+
+    public void headBranchChangeLoop(int headBranchChangesSize, Commit commitAfterMerge, List<Item> headBranchChanges) {
+        Blob headBranchBlob;
+        //while (headBranchChangesIndex != headBranchChangesSize) {
+        if(headBranchChangesIndex != headBranchChangesSize) {
             headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex);
             commitAfterMerge.updateBlobInCommit(headBranchBlob);
             headBranchChangesIndex++;
         }
-        while (branchToMergeChangesIndex != branchToMergeChangesSize) {
+        else {
+            headBranchConflict=false;
+        }
+    }
+
+    public void branchToMergeChangesLoop( int branchToMergeChangesSize, Commit commitAfterMerge,  List<Item> branchToMergeChanges) {
+        Blob branchToMergeBlob;
+      //  while (branchToMergeChangesIndex != branchToMergeChangesSize) {
+        if (branchToMergeChangesIndex != branchToMergeChangesSize) {
             branchToMergeBlob = (Blob) branchToMergeChanges.get(branchToMergeChangesIndex);
             commitAfterMerge.updateBlobInCommit(branchToMergeBlob);
             branchToMergeChangesIndex++;
         }
-        return commitAfterMerge;
+        else
+        {
+            branchToMergeConflict=false;
+        }
+    }
+
+    private ArrayList <String>  solveConflictsForUI(Blob headBranchBlob, Blob branchToMergeBlob, Blob blobInAncsterFather){
+        String headBranchBlobChange = headBranchBlob.getTypeOfChangeset().toString();
+        String branchToMergeBlobChange = branchToMergeBlob.getTypeOfChangeset().toString();
+        ArrayList <String> resList=new ArrayList<>();
+        if (headBranchBlobChange.equalsIgnoreCase("new") && branchToMergeBlobChange.equalsIgnoreCase("new")) {
+            resList.add(" "); // father
+            resList.add(headBranchBlob.getContent());  // base- me !!!
+            resList.add(branchToMergeBlob.getContent());//branch to merge
+            }
+        return resList;
     }
 
     private Blob solveConflicts(Blob headBranchBlob, Blob branchToMergeBlob, Blob blobInAncsterFather) {
@@ -1841,4 +1956,9 @@ public class Repository {
     public Commit showCommitData(){
         return this.getActiveBranch().getpCommit();
     }
+
+    public boolean checkIfThereIsMoreConflicts() {
+        return this.headBranchConflict || this.branchToMergeConflict;
+    }
+
 }
