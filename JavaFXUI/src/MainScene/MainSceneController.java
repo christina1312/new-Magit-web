@@ -14,12 +14,14 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+
 import System.Commit;
 
 public class MainSceneController {
 
     private Stage m_Stage;
-    private BasicMAGitManager m_Logic;
+    private BasicMAGitManager logic;
     private Parent m_root;
 
     private Task<Boolean> fileLoadTask;
@@ -31,6 +33,8 @@ public class MainSceneController {
 
     @FXML
     private Button ChangeUserNameButton;
+    @FXML
+    private Button saveConflictButton;
     @FXML
     private Button LoadNewRepositoryFromXMLFileButton;
     @FXML
@@ -138,6 +142,14 @@ public class MainSceneController {
     @FXML
     private ScrollPane theirsScroll;
     @FXML
+    private TextArea theirsText;
+    @FXML
+    private TextArea ouersText;
+    @FXML
+    private TextArea originText;
+    @FXML
+    private TextArea afterMergeText;
+    @FXML
     private ScrollPane originScroll;
     @FXML
     private ScrollPane afterMergeScroll;
@@ -154,14 +166,12 @@ public class MainSceneController {
     @FXML
     private TabPane tabPane;
 
-
-    private BasicMAGitManager logic;
-
     public void SetSage(Stage i_stg) {
         m_Stage = i_stg;
     }
 
-    public void MainSceneController() { }
+    public void MainSceneController() {
+    }
 
     @FXML
     public void initialize() {
@@ -174,8 +184,8 @@ public class MainSceneController {
         turnOffDeleteLabelsBranchTab();
         turnOffDeleteScrollBranchTab();
         turnOffMergeLabels();
+        makeTabsDisible();
         InfoCollaborationLabel.setVisible(false);
-
 
     }
 
@@ -215,7 +225,7 @@ public class MainSceneController {
                         updateProgress(i + 1, SLEEP_INTERVAL);
                     }
 
-                    if(logic.LoadMAGit(fileIn.getAbsolutePath())) {
+                    if (logic.LoadMAGit(fileIn.getAbsolutePath())) {
                         if (AlertPromptDialog.show(m_Stage, "There is repository in the given location. What do you want to do next?", "load") == 0) {
                             logic.DeleteRepositoryAndCreateNew(fileIn.getAbsolutePath());
                         } else { // == 1
@@ -223,27 +233,40 @@ public class MainSceneController {
                             logic.ChangeRepository(fileIn.getAbsolutePath());
                         }
                     }
-                    m_isGameLoaded = true;
-                    ChangeUserNameButton.setDisable(false);
-                } catch (Exception e) {
-                    InfoLabel.setVisible(true);
-                    String s = e.getMessage();
-                    Platform.runLater(() -> InfoLabel.setText("Error : " + s));
-                    m_isGameLoaded = false;
-                } finally {
-                    Platform.runLater(() -> ProgressBarXml.setVisible(false));
-                    Platform.runLater(() -> progressPercentLabel.setVisible(false));
+                    Platform.runLater(() -> {
+                        m_isGameLoaded = true;
+                        ChangeUserNameButton.setDisable(false);
+                        makeTabsVisible();
+                        ProgressBarXml.setVisible(false);
+                        progressPercentLabel.setVisible(false);
 
-                    if (m_isGameLoaded) {
+                        if (m_isGameLoaded) {
+                            InfoLabel.setVisible(true);
+                            InfoLabel.setText("File was loaded successfully!");
+                        }
+                    });
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
                         InfoLabel.setVisible(true);
-                        Platform.runLater(() -> InfoLabel.setText("File was loaded successfully!"));
-                    }
+                        InfoLabel.setText("Error : " + e.getMessage());
+                        m_isGameLoaded = false;
+                    });
                 }
+//                } finally {
+//                    Platform.runLater(() -> {
+//                        ProgressBarXml.setVisible(false);
+//                        progressPercentLabel.setVisible(false);
+//
+//                        if (m_isGameLoaded) {
+//                            InfoLabel.setVisible(true);
+//                            InfoLabel.setText("File was loaded successfully!");
+//                        }
+//                    });
+//                }
                 return true;
             }
         };
     }
-
 
     public void onChangeRepository() {
         turnOffLabelsSettingTab();
@@ -311,28 +334,53 @@ public class MainSceneController {
                         updateProgress(i + 1, SLEEP_INTERVAL);
                     }
                     //load the game acoording to the path we get from the user
-                    logic.ChangeRepository(fileIn.getAbsolutePath());
-                    m_isGameLoaded = true;
-                    ChangeUserNameButton.setDisable(false);
+                    Platform.runLater(() -> {
+                        try {
+                            logic.ChangeRepository(fileIn.getAbsolutePath());
+                            m_isGameLoaded = true;
+                            ChangeUserNameButton.setDisable(false);
+                            makeTabsVisible();
+                            InfoLabel.setVisible(true);
+                            ProgressBarXml.setVisible(false);
+                            progressPercentLabel.setVisible(false);
+                            if (m_isGameLoaded) {
+                                InfoLabel.setText("The repository has been changed successfully!");
+                            }
+                        } catch (Exception e) {
+                            Platform.runLater(() -> {
+                                InfoLabel.setVisible(true);
+                                InfoLabel.setText("Error : " + e.getMessage());
+                                turnOffProgressSettingTab();
+                            });
+                            m_isGameLoaded = false;
+                        }
+                    });
                 } catch (Exception e) {
-                    InfoLabel.setVisible(true);
-                    String s = e.getMessage();
-                    Platform.runLater(() -> InfoLabel.setText("Error : " + s));
-                    m_isGameLoaded = false;
-                } finally {
-                    InfoLabel.setVisible(true);
-                    Platform.runLater(() -> ProgressBarXml.setVisible(false));
-                    Platform.runLater(() -> progressPercentLabel.setVisible(false));
-                    Platform.runLater(() -> makeTabsVisible());
 
-                    if (m_isGameLoaded) {
-                        Platform.runLater(() -> InfoLabel.setText("The repository has been changed successfully!"));
-                    }
+                    Platform.runLater(() -> {
+                        InfoLabel.setVisible(true);
+                        InfoLabel.setText("Error : " + e.getMessage());
+                        turnOffProgressSettingTab();
+                    });
+                    m_isGameLoaded = false;
                 }
                 return true;
             }
         };
     }
+
+//                } finally {
+//                    InfoLabel.setVisible(true);
+//                    Platform.runLater(() -> {
+//                        ProgressBarXml.setVisible(false);
+//                        progressPercentLabel.setVisible(false);
+//                        if (m_isGameLoaded) {
+//                            InfoLabel.setText("The repository has been changed successfully!");
+//                        }});
+//                                    }
+//                return true;
+//            }
+                    // };
 
     //todo
     private Task<Boolean> cloneRepositoryTask(File fileIn) {
@@ -537,68 +585,58 @@ public class MainSceneController {
     public void onPull(){
 
     }
-    public void onMerge() throws Exception {
-//        EventHandler<ActionEvent> event = new EventHandler<ActionEvent>() {
-//            public void handle(ActionEvent e) {
-//                try {
-//                    turnOffDeleteLabelsBranchTab();
-//                    if(logic.CheckoutHeadBranch(branchToDeleteText.getText())){
-//                        if(AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "checkout")==0){
-//                            //delete all changes
-//                            logic.deleteWorkingCopyChanges();
-//                            logic.CheckoutHeadBranch(branchToDeleteText.getText());
-//                        }
-//                        else{ // == 1 : commit
-//                            //the user need to do commit in commit iab!!
-//                        }
-//                    }
-//                    branchToDeteleLabel.setVisible(true);
-//                    branchToDeteleLabel.setText("Checkout successfully!");
-//                } catch (Exception ex) {
-//                    turnOffDeleteLabelsBranchTab();
-//                    branchToDeteleLabel.setVisible(true);
-//                    branchToDeteleLabel.setText("Error: " + ex.getMessage());
-//                }
-//            }
-//        };
-        //       deleteButton.setOnAction(event);
+    public void onCheckConflicts(){
         try {
+            ArrayList<String> res =logic.startMerge(branchMergeText.getText());
 
-            if(logic.merge(branchToDeleteText.getText())){
+            if(res.get(0).equalsIgnoreCase("TRUE")){
                 if(AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "checkout")==0){
                     logic.deleteWorkingCopyChanges();
-                    logic.CheckoutHeadBranch(branchToDeleteText.getText());
+                    logic.CheckoutHeadBranch(branchMergeText.getText());
                 }
-                else{
-                    //the user need to do commit in commit iab!!
+                else{ //the user need to do commit in commit iab!!
                 }
             }
+            else{// father, me, branch to merge
+                turnOnMergeLabels();
+                originText.setText(res.get(0));
+                ouersText.setText(res.get(1));
+                theirsText.setText(res.get(2));
+
+                mergeLabel.setVisible(true);
+                mergeLabel.setText("Copy the selected changes to the After merge area");
+
+            }
             turnOffMergeLabels();
-            mergeLabel.setVisible(true);
-            mergeLabel.setText("The new branch created successfully!");
         } catch (Exception ex) {
             turnOffMergeLabels();
             mergeLabel.setVisible(true);
-            mergeLabel.setText("An error occurred while trying to add new branch!");
+            mergeLabel.setText(ex.getMessage());
         }
     }
 
-    public void onCheckConflicts() {
+    public void onSaveConflict() {
         try {
-            if (logic.merge(branchMergeText.getText())) {
-                if (AlertPromptDialog.show(m_Stage, "There is repository in the given location. What do you want to do next?" , "conflict") == 0) {
-                    logic.deleteNotMagitDir();
-                } else { // == 1 : commit
-                    //the user need to do commit in commit iab!!
-                }
+            while (logic.checkIfThereIsMoreConflicts()) {
+                logic.handleSingleConflict(afterMergeText.getText());
             }
+            MergeButton.setVisible(true);
+        }catch (Exception ex) {
+            mergeLabel.setVisible(true);
+            mergeLabel.setText("Error: " + ex.getMessage());
+            mergeLabel.setText("");
+        }
+    }
 
-            MergeButton.setDisable(false);
-            turnOnCollebrationLabels();
+    public void onMerge() {
+        try {
+            logic.setAfterMerge();
+            mergeLabel.setVisible(true);
+            mergeLabel.setText("Merged successfully!");
         } catch (Exception ex) {
             mergeLabel.setVisible(true);
             mergeLabel.setText("Error: " + ex.getMessage());
-            branchMergeText.setText("");
+            mergeLabel.setText("");
         }
     }
 
@@ -750,7 +788,7 @@ public class MainSceneController {
         branchPointedCommitText.setText("");
     }
 
-    private void turnOnCollebrationLabels(){
+    private void turnOnMergeLabels(){
         checkConflictsButton.setVisible(true);
         MergeButton.setVisible(true);
         thiersLabel.setVisible(true);
@@ -762,12 +800,14 @@ public class MainSceneController {
         ouersScroll.setVisible(true);
         afterMergeScroll.setVisible(true);
         originScroll.setVisible(true);
+        saveConflictButton.setVisible(true);
         turnOffConflictLabels();
     }
 
     private void turnOffMergeLabels(){
         turnOnConflictLabels();
 
+       // checkConflictsButton.setVisible(false);
         MergeButton.setVisible(false);
         thiersLabel.setVisible(false);
         ouersLabel.setVisible(false);
@@ -779,6 +819,7 @@ public class MainSceneController {
         ouersScroll.setVisible(false);
         afterMergeScroll.setVisible(false);
         originScroll.setVisible(false);
+        saveConflictButton.setVisible(false);
     }
 
     private void turnOffConflictLabels(){
@@ -798,5 +839,12 @@ public class MainSceneController {
         BranchesTab.setDisable(false);
         MergaTab.setDisable(false);
         CollabortionTab.setDisable(false);
+    }
+
+    private void makeTabsDisible(){
+        FilesAndCommitTab.setDisable(true);
+        BranchesTab.setDisable(true);
+        MergaTab.setDisable(true);
+        CollabortionTab.setDisable(true);
     }
 }

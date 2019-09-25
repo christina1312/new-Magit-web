@@ -37,7 +37,7 @@ public class Branch {
         StringBuilder res = new StringBuilder();
         String delimiter = ", ";
         res.append(name + delimiter + pCommit + delimiter
-                + isActive);
+                + isActive+ delimiter);
         return res.toString();
     }
 //    public void showInfo() {

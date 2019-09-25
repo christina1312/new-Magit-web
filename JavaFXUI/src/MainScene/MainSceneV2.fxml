@@ -32,7 +32,7 @@
                                     <Button fx:id="ChangeRepositoryButton" layoutX="11.0" layoutY="88.0" mnemonicParsing="false" onMouseClicked="#onChangeRepository" prefHeight="26.0" prefWidth="268.0" text="Change repository" />
                                  </children>
                               </AnchorPane>
-                              <Label fx:id="InfoLabel" layoutX="356.0" layoutY="16.0" prefHeight="52.0" prefWidth="358.0" text="Info lable" />
+                              <Label fx:id="InfoLabel" layoutX="356.0" layoutY="16.0" prefHeight="52.0" prefWidth="549.0" text="Info lable" />
                               <TextField fx:id="inputTextField" layoutX="354.0" layoutY="93.0" prefHeight="26.0" prefWidth="360.0" promptText="Input " />
                               <Button fx:id="saveButton" layoutX="751.0" layoutY="93.0" mnemonicParsing="false" text="Save" />
                               <ProgressBar fx:id="ProgressBarXml" layoutX="354.0" layoutY="134.0" prefHeight="18.0" prefWidth="239.0" progress="0.0" />
@@ -42,7 +42,7 @@
                      </children></AnchorPane>
             </content>
           </Tab>
-          <Tab fx:id="FilesAndCommitTab" text="Files &amp; Commit">
+          <Tab fx:id="FilesAndCommitTab" disable="true" text="Files &amp; Commit">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="461.0" prefWidth="930.0">
                      <children>
@@ -109,7 +109,7 @@
                      </children></AnchorPane>
             </content>
           </Tab>
-            <Tab fx:id="BranchesTab" text="Branches">
+            <Tab fx:id="BranchesTab" disable="true" text="Branches">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
@@ -144,17 +144,17 @@
                      </children></AnchorPane>
               </content>
             </Tab>
-            <Tab fx:id="MergaTab" text="Merge">
+            <Tab fx:id="MergaTab" disable="true" text="Merge">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <AnchorPane layoutX="3.0" layoutY="4.0" prefHeight="449.0" prefWidth="899.0">
+                        <AnchorPane layoutY="14.0" prefHeight="449.0" prefWidth="899.0">
                            <children>
                               <ScrollPane fx:id="theirsScroll" layoutX="14.0" layoutY="100.0" prefHeight="139.0" prefWidth="418.0">
                                 <content>
                                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="139.0" prefWidth="418.0">
                                        <children>
-                                          <TextArea layoutY="6.0" prefHeight="123.0" prefWidth="410.0" />
+                                          <TextArea fx:id="theirsText" layoutY="6.0" prefHeight="123.0" prefWidth="410.0" />
                                        </children>
                                     </AnchorPane>
                                 </content>
@@ -163,7 +163,7 @@
                                  <content>
                                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="138.0" prefWidth="418.0">
                                        <children>
-                                          <TextArea layoutX="3.0" layoutY="7.0" prefHeight="118.0" prefWidth="400.0" />
+                                          <TextArea fx:id="ouersText" layoutX="3.0" layoutY="7.0" prefHeight="118.0" prefWidth="400.0" />
                                        </children>
                                     </AnchorPane>
                                  </content>
@@ -172,7 +172,7 @@
                                  <content>
                                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="136.0" prefWidth="417.0">
                                        <children>
-                                          <TextArea layoutX="3.0" layoutY="-2.0" prefHeight="124.0" prefWidth="413.0" />
+                                          <TextArea fx:id="originText" layoutX="3.0" layoutY="-2.0" prefHeight="124.0" prefWidth="413.0" />
                                        </children>
                                     </AnchorPane>
                                  </content>
@@ -181,7 +181,7 @@
                                  <content>
                                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="137.0" prefWidth="418.0">
                                        <children>
-                                          <TextArea layoutX="2.0" layoutY="-2.0" prefHeight="124.0" prefWidth="406.0" />
+                                          <TextArea fx:id="afterMergeText" layoutX="2.0" layoutY="-2.0" prefHeight="124.0" prefWidth="406.0" />
                                        </children>
                                     </AnchorPane>
                                  </content>
@@ -192,14 +192,15 @@
                               <Label fx:id="afterMergeLabel" layoutX="466.0" layoutY="264.0" prefHeight="33.0" prefWidth="98.0" text="After merge :" />
                               <Button fx:id="MergeButton" disable="true" layoutX="436.0" layoutY="22.0" mnemonicParsing="false" onMouseClicked="#onMerge" prefHeight="24.0" prefWidth="158.0" text="Merge" />
                               <Label fx:id="mergeLabel" layoutX="607.0" layoutY="12.0" prefHeight="46.0" prefWidth="292.0" />
-                              <Button fx:id="checkConflictsButton" layoutX="236.0" layoutY="21.0" mnemonicParsing="false" onMouseClicked="#onCheckConflicts" prefHeight="26.0" prefWidth="166.0" text="Check the conflicts" />
-                              <Label fx:id="branchMergeLabel" layoutX="15.0" layoutY="8.0" prefHeight="34.0" prefWidth="198.0" text="Branch name to marge with :" />
+                              <Button fx:id="checkConflictsButton" layoutX="242.0" layoutY="21.0" mnemonicParsing="false" onMouseClicked="#onCheckConflicts" prefHeight="26.0" prefWidth="166.0" text="Check the conflicts" />
+                              <Label fx:id="branchMergeLabel" layoutX="15.0" layoutY="8.0" prefHeight="34.0" prefWidth="233.0" text="Branch name to marge with :" />
                               <TextField fx:id="branchMergeText" layoutX="14.0" layoutY="47.0" />
+                              <Button fx:id="saveConflictButton" layoutX="745.0" layoutY="268.0" mnemonicParsing="false" onMouseClicked="#onSaveConflict" prefHeight="26.0" prefWidth="138.0" text="Save conflict !" />
                            </children></AnchorPane>
                      </children></AnchorPane>
               </content>
             </Tab>
-            <Tab fx:id="CollabortionTab" text="Collaboration">
+            <Tab fx:id="CollabortionTab" disable="true" text="Collaboration">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>

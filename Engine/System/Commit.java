@@ -19,21 +19,23 @@ import static org.apache.commons.codec.digest.DigestUtils.sha1Hex;
 public class Commit implements IZipable {
     private Folder rootFolder;
     private String precedingCommit;
+    private String secondPrecedingCommit;
     private String message;
     private String dateCreated;
     private User user;
     private String id;
 
-    public Commit(Folder rootFolder, String message, User user, String dateCreated, String precedingCommit) {
+    public Commit(Folder rootFolder, String message, User user, String dateCreated, String precedingCommit, String secondPrecedingCommit) {
         this.rootFolder = rootFolder;
         this.message = message;
         this.user = user;
         this.dateCreated = dateCreated;
         this.precedingCommit = precedingCommit;
+        this.secondPrecedingCommit = secondPrecedingCommit;
     }
 
-    public Commit(Folder rootFolder, String message, User user, String dateCreated, String precedingCommit, String id) {
-        this(rootFolder, message, user, dateCreated, precedingCommit);
+    public Commit(Folder rootFolder, String message, User user, String dateCreated, String precedingCommit, String id, String secondPrecedingCommit) {
+        this(rootFolder, message, user, dateCreated, precedingCommit, secondPrecedingCommit);
         this.id = id;
     }
 
@@ -58,7 +60,7 @@ public class Commit implements IZipable {
         StringBuilder res = new StringBuilder();
         String delimiter = ",";
         res.append(sha1Hex(rootFolder.toString()) + delimiter + precedingCommit + delimiter + message + delimiter
-                + dateCreated + delimiter + user.toString());
+                + dateCreated + delimiter + user.toString()+delimiter + secondPrecedingCommit);
 
         return res.toString();
     }

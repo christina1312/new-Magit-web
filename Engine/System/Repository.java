@@ -136,6 +136,12 @@ public class Repository {
         boolean isTracking;
         String trackingAfter = null;
         magitPath = path + "\\.magit";
+        String labriryName="";
+
+        String contentName = path;
+        String[] partsForName = contentName.split("\\\\");
+        this.name = partsForName[partsForName.length - 1];
+        this.location = path;
 
         String pathBranches = path + "\\.magit\\branches";
         File[] filesBranches = new File(pathBranches).listFiles();
@@ -145,36 +151,62 @@ public class Repository {
 
         List<Branch> branchesNames = new ArrayList<>();
 
-        for (File branchFile : filesBranches) {// RTB
+        for (File branchFile : filesBranches) {
             if (branchFile.getName().equalsIgnoreCase("HEAD.txt")) {
                 headBranch = readFromFile(branchFile.getPath());
             }
         }
         for (File branchFile : filesBranches) {
-            isActive = false;
-            branchName = branchFile.getName().substring(0, (branchFile.getName().length() - 4));
-            if (!branchFile.getName().equalsIgnoreCase("HEAD.txt")) {
-                if (branchName.equalsIgnoreCase(headBranch)) {
-                    isActive = true;
+            if (!branchFile.isDirectory()) {
+                isActive = false;
+                branchName = branchFile.getName().substring(0, (branchFile.getName().length() - 4));
+                if (!branchFile.getName().equalsIgnoreCase("HEAD.txt")) {
+                    if (branchName.equalsIgnoreCase(headBranch)) {
+                        isActive = true;
+                    }
+                    dataFromBranch = readFromFile(branchFile.getPath());
+                    String[] parts = dataFromBranch.split(", ");
+                    isRemote = parts[1].equalsIgnoreCase("TRUE");
+                    isTracking = parts[2].equalsIgnoreCase("TRUE");
+                    if (isTracking)
+                        trackingAfter = parts[3];
+                    Branch newBranch = new Branch(branchName, null, isActive, isRemote, isTracking, trackingAfter);
+                    sha1 = parts[0];
+                    findNextCommit(sha1, newBranch, path, unZipFilesDir, true);
+                    if (isActive)
+                        this.activeBranch = newBranch;
+                    branchesNames.add(newBranch);
                 }
-                dataFromBranch = readFromFile(branchFile.getPath());
-                String[] parts = dataFromBranch.split(", ");
-                isRemote = parts[1].equalsIgnoreCase("TRUE");
-                isTracking = parts[2].equalsIgnoreCase("TRUE");
-                if (isTracking)
-                    trackingAfter = parts[3];
-                Branch newBranch = new Branch(branchName, null, isActive, isRemote, isTracking, trackingAfter);
-                sha1 = parts[0];
-                findNextCommit(sha1, newBranch, path, unZipFilesDir, true);
-                if (isActive)
-                    this.activeBranch = newBranch;
-                branchesNames.add(newBranch);
+            }
+            else{
+                labriryName=branchFile.getName();
             }
         }
-        String contentName = path;
-        String[] partsForName = contentName.split("\\\\");
-        this.name = partsForName[partsForName.length - 1];
-        this.location = path;
+        pathBranches = path + "\\.magit\\branches\\" + labriryName;
+        filesBranches = new File(pathBranches).listFiles();
+        if (filesBranches != null) {
+            for (File branchFile : filesBranches) {
+                isActive = false;
+                branchName = this.getName() + branchFile.getName().substring(0, (branchFile.getName().length() - 4));
+                if (!branchFile.getName().equalsIgnoreCase("HEAD.txt")) {
+                    if (branchName.equalsIgnoreCase(headBranch)) {
+                        isActive = true;
+                    }
+                    dataFromBranch = readFromFile(branchFile.getPath());
+                    String[] parts = dataFromBranch.split(", ");
+                    isRemote = parts[1].equalsIgnoreCase("TRUE");
+                    isTracking = parts[2].equalsIgnoreCase("TRUE");
+                    if (isTracking)
+                        trackingAfter = parts[3];
+                    Branch newBranch = new Branch(branchName, null, isActive, isRemote, isTracking, trackingAfter);
+                    sha1 = parts[0];
+                    findNextCommit(sha1, newBranch, path, unZipFilesDir, true);
+                    if (isActive)
+                        this.activeBranch = newBranch;
+                    branchesNames.add(newBranch);
+                }
+            }
+    }
         this.branchesList = branchesNames;
         this.branchPath = String.format("%s\\branches\\", magitPath);
         this.objectPath = String.format("%s\\objects\\", magitPath);
@@ -230,8 +262,9 @@ public class Repository {
         User user = new User(parts[4]);
         String date = (parts[3]);
         String precedingCommit = parts[1];
+        String secondPrecedingCommit = parts[5];
 
-        return new Commit(folder, messege, user, date, precedingCommit, "");
+        return new Commit(folder, messege, user, date, precedingCommit, "",secondPrecedingCommit);
     }
     private boolean checkIfCommitExists(Commit commit) {
 
@@ -659,7 +692,7 @@ public class Repository {
             }
         }
     }
-    //chris
+
     private void buildRepositoryinGivenPath() throws Exception {
         try {
             this.name = magitRepository.getName();
@@ -687,7 +720,6 @@ public class Repository {
         this.remote.setName(name);
     }
 
-    //chris
     private Folder createRec(MagitSingleFolder rootFolder, String path) throws Exception {
         MagitSingleFolder tempFolder = rootFolder;
         List<Item> foldersList = new ArrayList();
@@ -808,7 +840,6 @@ public class Repository {
         }
     }
 
-    //chris
     private void BuildCommitList() throws Exception {
         MagitSingleFolder rootFolder = null;
         Folder newFolder = null;
@@ -1023,7 +1054,8 @@ public class Repository {
 
     private Commit createNewCommit(MagitSingleCommit commit, Folder folder, String path) throws Exception {
 
-        Commit previous = findPreviousCommit(commit, path);
+        Commit previous = findPreviousCommit(commit, path,0);
+        Commit secondPrevious = findPreviousCommit(commit, path,1);
 
         return new Commit(
                 folder,
@@ -1031,16 +1063,17 @@ public class Repository {
                 new User(commit.getAuthor()),
                 getTime(commit.getDateOfCreation()),
                 (previous != null ? sha1Hex(previous.toString()) : null),
-                commit.getId()
+                commit.getId(),
+                (secondPrevious != null ? sha1Hex(secondPrevious.toString()) : null)
         );
     }
 
-    private Commit findPreviousCommit(MagitSingleCommit commit, String path) throws Exception {
+    private Commit findPreviousCommit(MagitSingleCommit commit, String path, int index) throws Exception {
         boolean found = false;
         String id = commit.getPrecedingCommits() != null ?
                 (commit.getPrecedingCommits().getPrecedingCommit() != null ?
-                        (commit.getPrecedingCommits().getPrecedingCommit().size() > 0 ?
-                                commit.getPrecedingCommits().getPrecedingCommit().get(0).getId() : null) : null) : null;
+                        (commit.getPrecedingCommits().getPrecedingCommit().size() > index ?
+                                commit.getPrecedingCommits().getPrecedingCommit().get(index).getId() : null) : null) : null;
 
         if (id == null || id.equalsIgnoreCase(commit.getId()) || id.isEmpty())
             return null;
@@ -1314,7 +1347,7 @@ public class Repository {
         Folder newFolder;
         newFolder = createCommittedWC(file);
         newFolder.setRoot(true);
-        Commit commit = new Commit(newFolder, commitDescription, this.user, getTime(), sha1Hex(activeBranch.getpCommit().toString()));
+        Commit commit = new Commit(newFolder, commitDescription, this.user, getTime(), sha1Hex(activeBranch.getpCommit().toString()),null);
         commit.setPrecedingCommit(sha1Hex(this.getActiveBranch().getpCommit().toString()));
         if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) {
             throw new Exception("There is no changes since the last commit.\n");
