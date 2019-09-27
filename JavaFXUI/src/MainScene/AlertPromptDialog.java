@@ -39,7 +39,7 @@ public class AlertPromptDialog extends Stage {
         label = new Label();
         label.setWrapText(true);
         label.setGraphicTextGap(40);
-        label.styleProperty().bind(Bindings.format("-fx-font-size: 15 ; -fx-font-weight: bold; -fx-background-color: linear-gradient(#61a2b1, #2A5058) "));
+        label.styleProperty().bind(Bindings.format("-fx-font-size: 15 ; -fx-font-weight: bold"));
         label.setAlignment(Pos.CENTER);
 
         Button continueButton;
@@ -68,7 +68,7 @@ public class AlertPromptDialog extends Stage {
             });
 
             if (type.equalsIgnoreCase("checkout")) {
-                commitButton = new Button("Commit the changes");
+                commitButton = new Button("Please commit the changes ");
                 commitButton.setMinSize(100, 30);
                 commitButton.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
@@ -134,12 +134,13 @@ public class AlertPromptDialog extends Stage {
     }
 
     public static int show(Stage owner, String msg,String type) {
+          String url2="/MainScene/blueBackground.jpg";
         Platform.runLater(()->{
             if (popup == null) {
                 popup = new AlertPromptDialog(type);
             }
             label.setText(msg);
-
+            borderPane.styleProperty().bind(Bindings.format("-fx-background-image: url(" + url2 +");-fx-background-position: center;-fx-background-size: stretch;-fx-border-color : black; -fx-border-width : 5 5 "));
             // calculate width of string
             final Text text = new Text(msg);
             text.snapshot(null, null);
@@ -150,7 +151,7 @@ public class AlertPromptDialog extends Stage {
             popup.setHeight(height);
 
             // make sure this stage is centered on top of its owner
-            popup.setX(owner.getX() + (owner.getWidth() / 2 - popup.getWidth() / 2));
+            popup.setX(owner.getX() + (owner.getWidth() / 2 - popup.getWidth() / 2) + 100);
             popup.setY(owner.getY() + (owner.getHeight() / 2 - popup.getHeight() / 2 -80));
             popup.showAndWait();
         });

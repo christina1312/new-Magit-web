@@ -39,11 +39,13 @@ public class Repository {
     private Set<String> hashFolder;
     private Set<String> hashCommit;
     private Set<String> hashBranch;
-    private static int headBranchChangesIndex = 0;
-    private static int branchToMergeChangesIndex = 0;
-    private static List<Item> branchToMergeChanges;
-    private static List<Item> headBranchChanges;
-    private static Commit commitAfterMerge;
+    private  int headBranchChangesIndex = 0;
+    private  int branchToMergeChangesIndex = 0;
+    private  List<Item> branchToMergeChanges;
+    private  List<Item> headBranchChanges;
+    private  int headBranchChangesSize;
+    private  int  branchToMergeChangesSize;
+    private  Commit commitAfterMerge;
     private boolean headBranchConflict=true;
     private boolean branchToMergeConflict=true;
     private boolean isInternalBranchFolderCreated=false;
@@ -1537,8 +1539,8 @@ public class Repository {
 
 
     public ArrayList<String> startMerge(String branchNameToMerge, int init) throws Exception {
-//       branchToMergeChangesIndex=init;
-//       headBranchChangesIndex=init;
+       branchToMergeChangesIndex=init;
+       headBranchChangesIndex=init;
         Branch branchToMerge;
         Commit ancestorCommit;
         ArrayList<String> resList = new ArrayList<>();
@@ -1585,12 +1587,34 @@ public class Repository {
         CreateWC();
     }
 
-    public void handleSingleConflict(String content)  {
-        Blob headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex-1);
-        Blob blob = createNewBlobForMerge(Item.TypeOfChangeset.NEW, content, headBranchBlob);
+    public void handleSingleConflict(String content, String check) {
+        Item.TypeOfChangeset type = checkBlobType(check);
+        Blob headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex - 1);
+        Blob blob = createNewBlobForMerge(type, content, headBranchBlob);
         commitAfterMerge.updateBlobInCommit(blob);
        // branchToMergeChangesIndex++;
-       // headBranchChangesIndex++;
+     //   headBranchChangesIndex++;
+
+        if(branchToMergeChangesIndex == branchToMergeChangesSize) {
+            branchToMergeConflict = false;
+        } else{
+            branchToMergeConflict=true;
+        }
+        if (headBranchChangesIndex == headBranchChangesSize) {
+            headBranchConflict = false;
+        } else {
+            headBranchConflict = true;
+        }
+    }
+
+    private Item.TypeOfChangeset checkBlobType(String check){
+        if(check.equalsIgnoreCase("NEW"))
+            return Item.TypeOfChangeset.NEW;
+        if(check.equalsIgnoreCase("MODIFIED"))
+            return Item.TypeOfChangeset.MODIFIED;
+        if(check.equalsIgnoreCase("DELETED"))
+            return Item.TypeOfChangeset.DELETED;
+        return null;
     }
 
     public void setCommitAfterMerge(Commit commitAfterMerge) throws IOException {
@@ -1734,9 +1758,10 @@ public class Repository {
             }
         });
 
-        int headBranchChangesSize = headBranchChanges.size(), branchToMergeChangesSize = branchToMergeChanges.size();
+         headBranchChangesSize = headBranchChanges.size();
+         branchToMergeChangesSize = branchToMergeChanges.size();
 
-        if (headBranchChangesIndex != headBranchChangesSize && branchToMergeChangesIndex != branchToMergeChangesSize) {
+        if (headBranchChangesIndex != headBranchChangesSize || branchToMergeChangesIndex != branchToMergeChangesSize) {
             headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex);
             branchToMergeBlob = (Blob) branchToMergeChanges.get(branchToMergeChangesIndex);
             if (headBranchBlob.getPath().compareTo(branchToMergeBlob.getPath()) > 0) {
@@ -1748,48 +1773,50 @@ public class Repository {
             } else {
                 Blob blobInAncestorFather = findBlobInRootFolder(commitAfterMerge.getRootFolder(), headBranchBlob.getPath());
                 solvedConflictBlob = solveConflictsForUI(headBranchBlob, branchToMergeBlob, blobInAncestorFather);
+                branchToMergeChangesIndex++;
+                headBranchChangesIndex++;
             }
         }
 
-        headBranchChangeLoop(headBranchChangesSize, commitAfterMerge,headBranchChanges);
-        branchToMergeChangesLoop(branchToMergeChangesSize,commitAfterMerge, branchToMergeChanges);
+      //  headBranchChangeCheck(headBranchChangesSize, commitAfterMerge,headBranchChanges);
+       // branchToMergeChangesCheck(branchToMergeChangesSize,commitAfterMerge, branchToMergeChanges);
 
         return solvedConflictBlob;
     }
 
-    public Blob createNewBlobForMerge(Item.TypeOfChangeset type , String content, Blob headBranchBlob){
-        Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
-        blob.setTypeOfChangeset(type);
-        blob.setPath(headBranchBlob.getPath());
-
+    private Blob createNewBlobForMerge(Item.TypeOfChangeset type , String content, Blob headBranchBlob){
+          Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
+          blob.setTypeOfChangeset(type);
+          blob.setPath(headBranchBlob.getPath());
         return blob;
     }
 
-    public void headBranchChangeLoop(int headBranchChangesSize, Commit commitAfterMerge, List<Item> headBranchChanges) {
+    private void headBranchChangeCheck(int BranchChangesSize, Commit commitAfterMerge, List<Item> BranchChanges) {
         Blob headBranchBlob;
-        if(headBranchChangesIndex != headBranchChangesSize) {
+        if (headBranchChangesIndex != BranchChangesSize) {
             headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex);
             commitAfterMerge.updateBlobInCommit(headBranchBlob);
             headBranchChangesIndex++;
         }
-        //if((headBranchChangesIndex +1 == headBranchChangesSize)||
-              if(headBranchChangesIndex  == headBranchChangesSize) {
+        if (headBranchChangesIndex == BranchChangesSize) {
             headBranchConflict = false;
+        } else {
+            headBranchConflict = true;
         }
     }
 
-    public void branchToMergeChangesLoop( int branchToMergeChangesSize, Commit commitAfterMerge,  List<Item> branchToMergeChanges) {
+    public void branchToMergeChangesCheck( int branchToMergeChangesSize, Commit commitAfterMerge,  List<Item> branchToMergeChanges) {
         Blob branchToMergeBlob;
-        //  while (branchToMergeChangesIndex != branchToMergeChangesSize) {
         if (branchToMergeChangesIndex != branchToMergeChangesSize) {
             branchToMergeBlob = (Blob) branchToMergeChanges.get(branchToMergeChangesIndex);
             commitAfterMerge.updateBlobInCommit(branchToMergeBlob);
             branchToMergeChangesIndex++;
         }
-           // if ((branchToMergeChangesIndex - 1 == branchToMergeChangesSize)||
             if(branchToMergeChangesIndex  == branchToMergeChangesSize) {
                 branchToMergeConflict = false;
-        }
+            } else{
+                branchToMergeConflict=true;
+            }
     }
 
     private ArrayList <String>  solveConflictsForUI(Blob headBranchBlob, Blob branchToMergeBlob, Blob blobInAncsterFather){
@@ -1800,78 +1827,117 @@ public class Repository {
             resList.add(" "); // father
             resList.add(headBranchBlob.getContent());  // base- me !!!
             resList.add(branchToMergeBlob.getContent());//branch to merge
-            }
-        return resList;
-    }
+            resList.add("new");
+            resList.add("new");
 
-    private Blob solveConflicts(Blob headBranchBlob, Blob branchToMergeBlob, Blob blobInAncsterFather) {
-
-        String headBranchBlobChange = headBranchBlob.getTypeOfChangeset().toString();
-        String branchToMergeBlobChange = branchToMergeBlob.getTypeOfChangeset().toString();
-        if (headBranchBlobChange.equalsIgnoreCase("new")) {
-            if (branchToMergeBlobChange.equalsIgnoreCase("new")) {
-                System.out.println("The File: " + headBranchBlob.getPath() + " has created in both branches, choose what do you wanna do:");
-                System.out.println(headBranchBlob.getPath() + " in the base branch is: " + headBranchBlob.getContent() + "\n-----------------------------------");
-                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
-                System.out.println("copy and paste the text you would like to have in the new file : ");
-                String content = "new + new ";
-                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
-                blob.setTypeOfChangeset(Item.TypeOfChangeset.NEW);
-                blob.setPath(headBranchBlob.getPath());
-                return blob;
-            }
-            //todo verify if we can get another conflicts here (new + deleted,new + modified)
         }
         if (headBranchBlobChange.equalsIgnoreCase("deleted"))
         {
             if (branchToMergeBlobChange.equalsIgnoreCase("modified")) {
-                System.out.println("The File: " + headBranchBlob.getPath() + " has deleted in head branch, and modified on the other, choose what do you wanna do:");
-                System.out.println(blobInAncsterFather.getPath() + " in the mutual commit is: " + blobInAncsterFather.getContent() + "\n-----------------------------------");
-                System.out.println(headBranchBlob.getPath() + " in the base branch is: " + headBranchBlob.getContent() + "\n-----------------------------------");
-                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
-                System.out.println("copy and paste the text you would like to have in the new file : ");
-                String content = "deleted in head + modified in branchhtomerged"; //todo need to get from user the desired file
-                //todo if "deleted" chosen need to delete file else need to create and return new blob
-                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
-                blob.setTypeOfChangeset(Item.TypeOfChangeset.MODIFIED);
-                blob.setPath(headBranchBlob.getPath());
+                resList.add(blobInAncsterFather.getContent()); // father
+                resList.add("");  // base- me !!!
+                resList.add(branchToMergeBlob.getContent());//branch to merge
+                resList.add("deleted");
+                resList.add("modified");
 
-                return blob;
             }
             if (branchToMergeBlobChange.equalsIgnoreCase("deleted")) {
-                System.out.println("File deleted in both branches, file will be deleted.");
-                return branchToMergeBlob;
+                resList.add(blobInAncsterFather.getContent()); // father
+                resList.add("");  // base- me !!!
+                resList.add("");//branch to merge
+                resList.add("deleted");
+                resList.add("deleted");
+
             }
         }
         if (headBranchBlobChange.equalsIgnoreCase("modified")) {
             if (branchToMergeBlobChange.equalsIgnoreCase("modified")) {
-                System.out.println("The File: " + headBranchBlob.getPath() + " has modified in both branches. ");
-                System.out.println(blobInAncsterFather.getPath() + " in the mutual commit is:\n " + blobInAncsterFather.getContent() + "\n-----------------------------------");
-                System.out.println(headBranchBlob.getPath() + " in the base branch is:\n " + headBranchBlob.getContent() + "\n-----------------------------------");
-                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
-                System.out.println("copy and paste the text you would like to have in the new file : ");
-                String content = "modified x2"; //todo need to get from user the desired file
-                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
-                blob.setTypeOfChangeset(Item.TypeOfChangeset.MODIFIED);
-                blob.setPath(headBranchBlob.getPath());
-                return blob;
+                resList.add(blobInAncsterFather.getContent()); //father
+                resList.add(headBranchBlob.getContent());  // base- me !!!
+                resList.add(branchToMergeBlob.getContent());//branch to merge
+                resList.add("modified");
+                resList.add("modified");
 
             }
             if (branchToMergeBlobChange.equalsIgnoreCase("deleted")) {
-                System.out.println("The File: " + headBranchBlob.getPath() + " has deleted in  branchtomerge, and modified on the other, choose what do you wanna do:");
-                System.out.println(blobInAncsterFather.getPath() + " in the mutual commit is: " + blobInAncsterFather.getContent() + "\n-----------------------------------");
-                System.out.println(headBranchBlob.getPath() + " in the base branch is: " + headBranchBlob.getContent() + "\n-----------------------------------");
-                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
-                System.out.println("copy and paste the text you would like to have in the new file : ");
-                String content = "modified in head + deleted on branchhtomerged"; //todo need to get from user the desired file
-                //todo if "deleted" chosen need to delete file else need to create and return new blob
-                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
-                blob.setTypeOfChangeset(Item.TypeOfChangeset.MODIFIED);
-                return blob;
+                resList.add(blobInAncsterFather.getContent()); //father
+                resList.add(headBranchBlob.getContent());  // base- me !!!
+                resList.add("");//branch to merge
+                resList.add("modified");
+                resList.add("deleted");
             }
         }
-        return null;
+        return resList;
     }
+
+//    private Blob solveConflicts(Blob headBranchBlob, Blob branchToMergeBlob, Blob blobInAncsterFather) {
+//
+//        String headBranchBlobChange = headBranchBlob.getTypeOfChangeset().toString();
+//        String branchToMergeBlobChange = branchToMergeBlob.getTypeOfChangeset().toString();
+//        if (headBranchBlobChange.equalsIgnoreCase("new")) {
+//            if (branchToMergeBlobChange.equalsIgnoreCase("new")) {
+//                System.out.println("The File: " + headBranchBlob.getPath() + " has created in both branches, choose what do you wanna do:");
+//                System.out.println(headBranchBlob.getPath() + " in the base branch is: " + headBranchBlob.getContent() + "\n-----------------------------------");
+//                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
+//                System.out.println("copy and paste the text you would like to have in the new file : ");
+//                String content = "new + new ";
+//                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
+//                blob.setTypeOfChangeset(Item.TypeOfChangeset.NEW);
+//                blob.setPath(headBranchBlob.getPath());
+//                return blob;
+//            }
+//            //todo verify if we can get another conflicts here (new + deleted,new + modified)
+//        }
+//        if (headBranchBlobChange.equalsIgnoreCase("deleted"))
+//        {
+//            if (branchToMergeBlobChange.equalsIgnoreCase("modified")) {
+//                System.out.println("The File: " + headBranchBlob.getPath() + " has deleted in head branch, and modified on the other, choose what do you wanna do:");
+//                System.out.println(blobInAncsterFather.getPath() + " in the mutual commit is: " + blobInAncsterFather.getContent() + "\n-----------------------------------");
+//                System.out.println(headBranchBlob.getPath() + " in the base branch is: " + headBranchBlob.getContent() + "\n-----------------------------------");
+//                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
+//                System.out.println("copy and paste the text you would like to have in the new file : ");
+//                String content = "deleted in head + modified in branchhtomerged"; //todo need to get from user the desired file
+//                //todo if "deleted" chosen need to delete file else need to create and return new blob
+//                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
+//                blob.setTypeOfChangeset(Item.TypeOfChangeset.MODIFIED);
+//                blob.setPath(headBranchBlob.getPath());
+//
+//                return blob;
+//            }
+//            if (branchToMergeBlobChange.equalsIgnoreCase("deleted")) {
+//                System.out.println("File deleted in both branches, file will be deleted.");
+//                return branchToMergeBlob;
+//            }
+//        }
+//        if (headBranchBlobChange.equalsIgnoreCase("modified")) {
+//            if (branchToMergeBlobChange.equalsIgnoreCase("modified")) {
+//                System.out.println("The File: " + headBranchBlob.getPath() + " has modified in both branches. ");
+//                System.out.println(blobInAncsterFather.getPath() + " in the mutual commit is:\n " + blobInAncsterFather.getContent() + "\n-----------------------------------");
+//                System.out.println(headBranchBlob.getPath() + " in the base branch is:\n " + headBranchBlob.getContent() + "\n-----------------------------------");
+//                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
+//                System.out.println("copy and paste the text you would like to have in the new file : ");
+//                String content = "modified x2"; //todo need to get from user the desired file
+//                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
+//                blob.setTypeOfChangeset(Item.TypeOfChangeset.MODIFIED);
+//                blob.setPath(headBranchBlob.getPath());
+//                return blob;
+//
+//            }
+//            if (branchToMergeBlobChange.equalsIgnoreCase("deleted")) {
+//                System.out.println("The File: " + headBranchBlob.getPath() + " has deleted in  branchtomerge, and modified on the other, choose what do you wanna do:");
+//                System.out.println(blobInAncsterFather.getPath() + " in the mutual commit is: " + blobInAncsterFather.getContent() + "\n-----------------------------------");
+//                System.out.println(headBranchBlob.getPath() + " in the base branch is: " + headBranchBlob.getContent() + "\n-----------------------------------");
+//                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
+//                System.out.println("copy and paste the text you would like to have in the new file : ");
+//                String content = "modified in head + deleted on branchhtomerged"; //todo need to get from user the desired file
+//                //todo if "deleted" chosen need to delete file else need to create and return new blob
+//                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
+//                blob.setTypeOfChangeset(Item.TypeOfChangeset.MODIFIED);
+//                return blob;
+//            }
+//        }
+//        return null;
+//    }
 
     private void addCommitToCommitList(Commit newCommit){
         if(!this.getCommitsList().contains(newCommit))
@@ -1899,9 +1965,12 @@ public class Repository {
                 for (File fileToCopy : filesRepo) {
                     FileUtils.copyFile(fileToCopy, new File(branchFileTarget, fileToCopy.getName()));
                 }
-            } else // check
-                throw new Exception("The repository that you want to clone from is empty!");
-
+            } else  {
+                // delete repo in case the repo
+                File temp = new File(pathLR);
+                deleteDirectory(temp);
+                throw new Exception("The repository that you want to clone from doesnt exists!");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1912,7 +1981,22 @@ public class Repository {
 
     }
 
+    public void push() throws Exception {
+        if(this.remote.getLocation()== null){
+            throw new Exception("There is no remote repository");
+        }
+    }
+
+    public void pull() throws Exception {
+        if(this.remote.getLocation()== null){
+            throw new Exception("There is no remote repository");
+        }
+    }
+
     public void fetch() throws Exception {
+        if(this.remote.getLocation()== null){
+            throw new Exception("There is no remote repository");
+        }
         String pathRR = this.remote.getLocation() + "\\.magit\\branches";
         String pathLR = this.location + "\\.magit\\branches";
         File[] branchesRR = new File(pathRR).listFiles();

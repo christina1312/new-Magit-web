@@ -159,9 +159,9 @@ public class BasicMAGitManager {
         return repository.handleSecondConflict();
     }
 
-    public boolean handleSingleConflict(String afterMergeText) throws Exception {
+    public boolean handleSingleConflict(String afterMergeText, String check) throws Exception {
         if(afterMergeText!= null) {
-            repository.handleSingleConflict(afterMergeText);
+            repository.handleSingleConflict(afterMergeText, check);
             return true;
         }
         return false;
@@ -171,6 +171,12 @@ public class BasicMAGitManager {
     }
     public boolean checkIfThereIsMoreConflicts() {
         return repository.checkIfThereIsMoreConflicts();
+    }
+    public void push() throws Exception {
+         repository.push();
+    }
+    public void pull() throws Exception {
+        repository.pull();
     }
 }
 

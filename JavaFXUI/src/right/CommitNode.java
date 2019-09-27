@@ -3,7 +3,6 @@
 //import com.fxgraph.cells.AbstractCell;
 //import com.fxgraph.graph.Graph;
 //import com.fxgraph.graph.IEdge;
-//import com.sun.corba.se.impl.orbutil.graph.Graph;
 //import common.constants.StringConstants;
 //import javafx.beans.binding.DoubleBinding;
 //import javafx.fxml.FXMLLoader;
@@ -56,9 +55,6 @@
 //        {
 //            return new Label("Error when tried to create graphic node !");
 //        }
-//    }
-//
-//    private Class<Object> getClass() {
 //    }
 //
 //    public void SetBranchName(String i_BranchesString)

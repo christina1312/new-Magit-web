@@ -141,7 +141,7 @@ public class Commit implements IZipable {
     public void updateBlobInCommit(Blob blob) {
         String path = blob.getPath();
         String[] partsForPath = path.split("\\\\");
-        String name = partsForPath[partsForPath.length - 1];
+        //String name = partsForPath[partsForPath.length - 1];
         int indexToStart = 0;
         Folder currFolder = this.rootFolder;
         for (int i = 0; i < partsForPath.length; i++) {
