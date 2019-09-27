@@ -59,7 +59,7 @@ public class Commit implements IZipable {
     public String toString() {
         StringBuilder res = new StringBuilder();
         String delimiter = ",";
-        res.append(sha1Hex(rootFolder.toString()) + delimiter + precedingCommit + delimiter + message + delimiter
+        res.append(sha1Hex(this.rootFolder.toString()) + delimiter + precedingCommit + delimiter + message + delimiter
                 + dateCreated + delimiter + user.toString()+delimiter + secondPrecedingCommit);
 
         return res.toString();
@@ -93,7 +93,7 @@ public class Commit implements IZipable {
         temp.deleteOnExit();
         Utility.writeToFile(tempStr, temp.getPath());
         try {
-            if (!checkIfSha1Exists(sha1Hex(tempStr))) {
+            //if (!checkIfSha1Exists(sha1Hex(tempStr))) {
                 File i_FileForZip = new File(temp.getAbsolutePath());
                 File fileToZip = new File(i_FileForZip.getAbsolutePath());
                 FileOutputStream fos = new FileOutputStream(pathForSavingFile + "\\" + fileName);
@@ -109,9 +109,9 @@ public class Commit implements IZipable {
                 zipOut.close();
                 fis.close();
                 fos.close();
-            }
+          //  }
         } catch (Exception ex) {
-            System.out.println("Fail to zip a commit");
+          // throw new Exception("Fail to zip a commit");
         }
     }
 

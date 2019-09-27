@@ -152,12 +152,19 @@ public class BasicMAGitManager {
         repository.deleteWorkingCopyChanges();
     }
 
-    public ArrayList<String> startMerge(String branchToMerge) throws Exception {
-        return repository.startMerge(branchToMerge);
+    public ArrayList<String> startMerge(String branchToMerge, int init) throws Exception {
+        return repository.startMerge(branchToMerge, init);
+    }
+    public ArrayList<String> handleSecondConflict() throws Exception {
+        return repository.handleSecondConflict();
     }
 
-    public void handleSingleConflict(String afterMergeText) throws Exception {
-        repository.handleSingleConflict(afterMergeText);
+    public boolean handleSingleConflict(String afterMergeText) throws Exception {
+        if(afterMergeText!= null) {
+            repository.handleSingleConflict(afterMergeText);
+            return true;
+        }
+        return false;
     }
     public void setAfterMerge() throws Exception {
         repository.setAfterMerge();

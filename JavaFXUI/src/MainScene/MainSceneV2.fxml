@@ -22,7 +22,7 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onLoadNewRepositoryFromXMLFile" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <AnchorPane layoutX="-8.0" layoutY="-6.0" onMouseClicked="#onLoadNewRepositoryFromXMLFile" prefHeight="460.0" prefWidth="906.0">
+                        <AnchorPane layoutX="-8.0" layoutY="-6.0" prefHeight="460.0" prefWidth="906.0">
                            <children>
                               <AnchorPane layoutX="14.0" layoutY="14.0" prefHeight="152.0" prefWidth="232.0">
                                  <children>
@@ -190,17 +190,17 @@
                               <Label fx:id="originLabel" layoutX="15.0" layoutY="264.0" prefHeight="33.0" prefWidth="98.0" text="Origin :" />
                               <Label fx:id="ouersLabel" layoutX="479.0" layoutY="60.0" prefHeight="33.0" prefWidth="98.0" text="Ouers :" />
                               <Label fx:id="afterMergeLabel" layoutX="466.0" layoutY="264.0" prefHeight="33.0" prefWidth="98.0" text="After merge :" />
-                              <Button fx:id="MergeButton" disable="true" layoutX="436.0" layoutY="22.0" mnemonicParsing="false" onMouseClicked="#onMerge" prefHeight="24.0" prefWidth="158.0" text="Merge" />
-                              <Label fx:id="mergeLabel" layoutX="607.0" layoutY="12.0" prefHeight="46.0" prefWidth="292.0" />
-                              <Button fx:id="checkConflictsButton" layoutX="242.0" layoutY="21.0" mnemonicParsing="false" onMouseClicked="#onCheckConflicts" prefHeight="26.0" prefWidth="166.0" text="Check the conflicts" />
+                              <Button fx:id="MergeButton" layoutX="223.0" layoutY="12.0" mnemonicParsing="false" onMouseClicked="#onMerge" prefHeight="24.0" prefWidth="158.0" text="Merge" />
+                              <Label fx:id="mergeLabel" layoutX="541.0" layoutY="19.0" prefHeight="46.0" prefWidth="361.0" />
+                              <Button fx:id="checkConflictsButton" layoutX="207.0" layoutY="46.0" mnemonicParsing="false" onMouseClicked="#onCheckConflicts" prefHeight="26.0" prefWidth="166.0" text="Check the conflicts" />
                               <Label fx:id="branchMergeLabel" layoutX="15.0" layoutY="8.0" prefHeight="34.0" prefWidth="233.0" text="Branch name to marge with :" />
                               <TextField fx:id="branchMergeText" layoutX="14.0" layoutY="47.0" />
-                              <Button fx:id="saveConflictButton" layoutX="745.0" layoutY="268.0" mnemonicParsing="false" onMouseClicked="#onSaveConflict" prefHeight="26.0" prefWidth="138.0" text="Save conflict !" />
+                              <Button fx:id="saveConflictButton" layoutX="746.0" layoutY="251.0" mnemonicParsing="false" onMouseClicked="#onSaveConflict" prefHeight="26.0" prefWidth="138.0" text="Solve conflict !" />
                            </children></AnchorPane>
                      </children></AnchorPane>
               </content>
             </Tab>
-            <Tab fx:id="CollabortionTab" disable="true" text="Collaboration">
+            <Tab fx:id="CollabortionTab" text="Collaboration">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>

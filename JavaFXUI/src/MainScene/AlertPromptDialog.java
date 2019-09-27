@@ -43,33 +43,23 @@ public class AlertPromptDialog extends Stage {
         label.setAlignment(Pos.CENTER);
 
         Button continueButton;
-        Button commitButton;
+        Button commitButton=null;
 
-        continueButton = new Button("Continue (all changes will be deleted)");
-        continueButton.setMinSize(100, 50);
-        continueButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                result = 0;
-                AlertPromptDialog.this.close();
-            }
-        });
-
-        if(type.equalsIgnoreCase("checkout")){
-            commitButton = new Button("Commit the changes");
-            commitButton.setMinSize(100, 30);
-            commitButton.setOnAction(new EventHandler<ActionEvent>() {
+        if(type.equalsIgnoreCase("loadXML")){
+            continueButton = new Button("OK");
+            continueButton.setMinSize(150, 30);
+            continueButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
-                    result = 1;
+                    result = 0;
                     AlertPromptDialog.this.close();
                 }
             });
         }
-        else if(type.equalsIgnoreCase("load")){
-            commitButton = new Button("Delete the existing repository and create new repository");
-            commitButton.setMinSize(300, 30);
-            commitButton.setOnAction(new EventHandler<ActionEvent>() {
+        else {
+            continueButton = new Button("Continue (all changes will be deleted)");
+            continueButton.setMinSize(150, 30);
+            continueButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
                     result = 0;
@@ -77,27 +67,48 @@ public class AlertPromptDialog extends Stage {
                 }
             });
 
-            continueButton = new Button("Use the existing repository");
-            continueButton.setMinSize(100, 30);
-            continueButton.setOnAction(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
-                    result = 1;
-                    AlertPromptDialog.this.close();
-                }
-            });
+            if (type.equalsIgnoreCase("checkout")) {
+                commitButton = new Button("Commit the changes");
+                commitButton.setMinSize(100, 30);
+                commitButton.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        result = 1;
+                        AlertPromptDialog.this.close();
+                    }
+                });
+            } else if (type.equalsIgnoreCase("load")) {
+                commitButton = new Button("Delete the existing repository and create new repository");
+                commitButton.setMinSize(250, 30);
+                commitButton.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        result = 0;
+                        AlertPromptDialog.this.close();
+                    }
+                });
 
-        }
-        else{
-            commitButton = new Button("Cancel");
-            continueButton.setMinSize(100, 30);
-            commitButton.setOnAction(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
-                    result = 1;
-                    AlertPromptDialog.this.close();
-                }
-            });
+                continueButton = new Button("Use the existing repository");
+                continueButton.setMinSize(100, 30);
+                continueButton.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        result = 1;
+                        AlertPromptDialog.this.close();
+                    }
+                });
+
+            } else {
+                commitButton = new Button("Cancel");
+                continueButton.setMinSize(100, 30);
+                commitButton.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent event) {
+                        result = 1;
+                        AlertPromptDialog.this.close();
+                    }
+                });
+            }
         }
         borderPane = new BorderPane();
         BorderPane dropShadowPane = new BorderPane();
@@ -107,15 +118,17 @@ public class AlertPromptDialog extends Stage {
         hbox.setSpacing(15);
         hbox.setAlignment(Pos.CENTER);
         hbox.getChildren().add(continueButton);
-        hbox.setAlignment(Pos.CENTER);
-        hbox.getChildren().add(commitButton);
-
+        if(!type.equalsIgnoreCase("loadXML")) {
+            hbox.setAlignment(Pos.CENTER);
+            hbox.getChildren().add(commitButton);
+        }
         dropShadowPane.setBottom(hbox);
         borderPane.setCenter(dropShadowPane);
 
 
         Scene scene = new Scene(borderPane);
-        //  scene.getStylesheets().add(getResource("Alert.css").toExternalForm());
+        scene.getStylesheets().add("MainScene/Alert.css");
+      //  scene.getStylesheets().add(getResource("MainScene/Alert.css").toExternalForm());
         scene.setFill(Color.TRANSPARENT);
         setScene(scene);
     }
@@ -130,7 +143,7 @@ public class AlertPromptDialog extends Stage {
             // calculate width of string
             final Text text = new Text(msg);
             text.snapshot(null, null);
-            int width = (int) text.getLayoutBounds().getWidth()+150;
+            int width = (int) text.getLayoutBounds().getWidth()+200;
             int height = 120;
 
             popup.setWidth(width);

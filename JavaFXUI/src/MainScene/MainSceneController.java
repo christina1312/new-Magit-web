@@ -14,6 +14,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import System.Commit;
@@ -183,13 +184,13 @@ public class MainSceneController {
         turnOffWCCommitTab();
         turnOffDeleteLabelsBranchTab();
         turnOffDeleteScrollBranchTab();
-        turnOffMergeLabels();
+        turnOffMergeLabels(false);
         makeTabsDisible();
         InfoCollaborationLabel.setVisible(false);
 
     }
 
-    public void onLoadNewRepositoryFromXMLFile() {
+    public void onLoadNewRepositoryFromXMLFile() throws InterruptedException {
         turnOffLabelsSettingTab();
         turnOnProgressSettingTab();
 
@@ -208,7 +209,9 @@ public class MainSceneController {
             fileLoadTask = LoadNewRepositoryFromXMLFileTask(fileIn);
             bindProgress();
         } else {
-            InfoLabel.setText("Can not load file!");
+            InfoLabel.setText("");
+            AlertPromptDialog.show(m_Stage, "Could not load file!", "loadXML");
+
             turnOffProgressSettingTab();
         }
         turnOffLabelsSettingTab();
@@ -241,34 +244,26 @@ public class MainSceneController {
                         progressPercentLabel.setVisible(false);
 
                         if (m_isGameLoaded) {
-                            InfoLabel.setVisible(true);
-                            InfoLabel.setText("File was loaded successfully!");
+                            AlertPromptDialog.show(m_Stage, "File was loaded successfully!", "loadXML");
+                           // InfoLabel.setVisible(true);
+                          //  InfoLabel.setText("File was loaded successfully!");
                         }
                     });
                 } catch (Exception e) {
                     Platform.runLater(() -> {
-                        InfoLabel.setVisible(true);
-                        InfoLabel.setText("Error : " + e.getMessage());
+                      //  InfoLabel.setVisible(true);
+                      //  InfoLabel.setText("Error : " + e.getMessage());
+                        AlertPromptDialog.show(m_Stage, "Error : " + e.getMessage(), "loadXML");
                         m_isGameLoaded = false;
                     });
                 }
-//                } finally {
-//                    Platform.runLater(() -> {
-//                        ProgressBarXml.setVisible(false);
-//                        progressPercentLabel.setVisible(false);
 //
-//                        if (m_isGameLoaded) {
-//                            InfoLabel.setVisible(true);
-//                            InfoLabel.setText("File was loaded successfully!");
-//                        }
-//                    });
-//                }
                 return true;
             }
         };
     }
 
-    public void onChangeRepository() {
+    public void onChangeRepository() throws InterruptedException {
         turnOffLabelsSettingTab();
         turnOnProgressSettingTab();
 
@@ -285,7 +280,9 @@ public class MainSceneController {
             fileLoadTask = ChangeRepositoryTask(fileIn);
             bindProgress();
         } else {
-            InfoLabel.setText("Can not change repository!");
+            InfoLabel.setText(" ");
+            AlertPromptDialog.show(m_Stage, "Could not change repository!", "loadXML");
+
             turnOffProgressSettingTab();
         }
         turnOffLabelsSettingTab();
@@ -306,13 +303,15 @@ public class MainSceneController {
                         ChangeUserNameButton.setDisable(false);
                         turnOffLabelsSettingTab();
                         makeTabsVisible();
-                        InfoLabel.setVisible(true);
-                        InfoLabel.setText("The new repository has been created successfully!");
+                     //   InfoLabel.setVisible(true);
+                        //InfoLabel.setText("The new repository has been created successfully!");
+                        AlertPromptDialog.show(m_Stage, "The new repository has been created successfully!", "loadXML");
 
                     } catch (IOException ex) {
                         turnOffLabelsSettingTab();
-                        InfoLabel.setVisible(true);
-                        InfoLabel.setText("Error: " + ex + "\n An error occurred while trying to creat a new repository!");
+                    //    InfoLabel.setVisible(true);
+                      //  InfoLabel.setText("Error: " + ex + "\n An error occurred while trying to creat a new repository!");
+                        AlertPromptDialog.show(m_Stage, "Error: " + ex + "\n An error occurred while trying to creat a new repository!", "loadXML");
 
                     } catch (Exception ex) {
                         ex.printStackTrace();
@@ -344,12 +343,16 @@ public class MainSceneController {
                             ProgressBarXml.setVisible(false);
                             progressPercentLabel.setVisible(false);
                             if (m_isGameLoaded) {
-                                InfoLabel.setText("The repository has been changed successfully!");
+                              //  InfoLabel.setText("The repository has been changed successfully!");
+                                AlertPromptDialog.show(m_Stage, "The repository has been changed successfully!", "loadXML");
+
                             }
                         } catch (Exception e) {
                             Platform.runLater(() -> {
-                                InfoLabel.setVisible(true);
-                                InfoLabel.setText("Error : " + e.getMessage());
+                           //     InfoLabel.setVisible(true);
+                              //  InfoLabel.setText("Error : " + e.getMessage());
+                                AlertPromptDialog.show(m_Stage, "Error : " + e.getMessage(), "loadXML");
+
                                 turnOffProgressSettingTab();
                             });
                             m_isGameLoaded = false;
@@ -358,8 +361,9 @@ public class MainSceneController {
                 } catch (Exception e) {
 
                     Platform.runLater(() -> {
-                        InfoLabel.setVisible(true);
-                        InfoLabel.setText("Error : " + e.getMessage());
+                      //  InfoLabel.setVisible(true);
+                     //   InfoLabel.setText("Error : " + e.getMessage());
+                        AlertPromptDialog.show(m_Stage, "Error : " + e.getMessage(), "loadXML");
                         turnOffProgressSettingTab();
                     });
                     m_isGameLoaded = false;
@@ -405,7 +409,7 @@ public class MainSceneController {
         };
     }
 
-    private void bindProgress() {
+    private void bindProgress()  {
         ProgressBarXml.progressProperty().unbind();
         ProgressBarXml.progressProperty().bind(fileLoadTask.progressProperty());
 
@@ -414,12 +418,14 @@ public class MainSceneController {
                         Bindings.format(
                                 "%.0f",
                                 Bindings.multiply(fileLoadTask.progressProperty(),
+                                Bindings.multiply(fileLoadTask.progressProperty(),
                                         100)),
-                        " %"));
+                        " %")));
 
         fileLoadTask.messageProperty().addListener((observable, oldValue, newValue) -> progressPercentLabel.setText(newValue));
         Thread thread = new Thread(fileLoadTask);
         thread.start();
+      //  thread.join();
         this.progressPercentLabel.textProperty().unbind();
     }
 
@@ -432,12 +438,16 @@ public class MainSceneController {
                 try {
                     logic.setUserName(inputTextField.getText());
                     turnOffLabelsSettingTab();
-                    InfoLabel.setVisible(true);
-                    InfoLabel.setText("The user name updated successfully!");
+                  //  InfoLabel.setVisible(true);
+                    //InfoLabel.setText("The user name updated successfully!");
+                    AlertPromptDialog.show(m_Stage, "The user name updated successfully!", "loadXML");
+
                 } catch (Exception ex) {
                     turnOffLabelsSettingTab();
-                    InfoLabel.setVisible(true);
-                    InfoLabel.setText("An error occurred while trying to update the user name!");
+                  //  InfoLabel.setVisible(true);
+                   // InfoLabel.setText("An error occurred while trying to update the user name!");
+                    AlertPromptDialog.show(m_Stage, "An error occurred while trying to update the user name!", "loadXML");
+
                 }
             }
         };
@@ -454,12 +464,17 @@ public class MainSceneController {
         try {
             turnOffLabelsCommitTab();
             logic.DoCommit(newCommitMessageText.getText());
-            newCommitLabel.setVisible(true);
-            newCommitLabel.setText("The new commit saved successfully!");
+         //   newCommitLabel.setVisible(true);
+         //   newCommitLabel.setText("The new commit saved successfully!");
+            AlertPromptDialog.show(m_Stage, "The new commit saved successfully!", "loadXML");
+
         } catch (Exception ex) {
             turnOffLabelsCommitTab();
-            newCommitLabel.setVisible(true);
-            newCommitLabel.setText("Error: " + ex.getMessage());
+         //   newCommitLabel.setVisible(true);
+          //  newCommitLabel.setText("Error: " + ex.getMessage());
+            AlertPromptDialog.show(m_Stage, "Error : " + ex.getMessage(), "loadXML");
+
+            ex.printStackTrace();
         }
     }
 
@@ -499,12 +514,16 @@ public class MainSceneController {
                 try {
                     turnOffDeleteLabelsBranchTab();
                     logic.DeleteBranch(branchToDeleteText.getText());
-                    branchToDeteleLabel.setVisible(true);
-                    branchToDeteleLabel.setText("The branch was deleted successfully!");
+                   // branchToDeteleLabel.setVisible(true);
+                    //branchToDeteleLabel.setText("The branch was deleted successfully!");
+                    AlertPromptDialog.show(m_Stage,"The branch was deleted successfully!", "loadXML");
+
                 } catch (Exception ex) {
                     turnOffDeleteLabelsBranchTab();
-                    branchToDeteleLabel.setVisible(true);
-                    branchToDeteleLabel.setText("Error: " + ex.getMessage());
+            //        branchToDeteleLabel.setVisible(true);
+                 //   branchToDeteleLabel.setText("Error: " + ex.getMessage());
+                    AlertPromptDialog.show(m_Stage, "Error : " + ex.getMessage(), "loadXML");
+
                 }
             }
         };
@@ -530,12 +549,16 @@ public class MainSceneController {
                             //the user need to do commit in commit iab!!
                         }
                     }
-                    branchToDeteleLabel.setVisible(true);
-                    branchToDeteleLabel.setText("Checkout successfully!");
+               //     branchToDeteleLabel.setVisible(true);
+                 //   branchToDeteleLabel.setText("Checkout successfully!");
+                    AlertPromptDialog.show(m_Stage, "Checkout successfully!", "loadXML");
+
                 } catch (Exception ex) {
                     turnOffDeleteLabelsBranchTab();
-                    branchToDeteleLabel.setVisible(true);
-                    branchToDeteleLabel.setText("Error: " + ex.getMessage());
+                 //   branchToDeteleLabel.setVisible(true);
+                //    branchToDeteleLabel.setText("Error: " + ex.getMessage());
+                    AlertPromptDialog.show(m_Stage, "Error : " + ex.getMessage(), "loadXML");
+
                 }
             }
         };
@@ -561,12 +584,16 @@ public class MainSceneController {
                         }
                     }
                     turnOffDeleteLabelsBranchTab();
-                    branchToDeteleLabel.setVisible(true);
-                    branchToDeteleLabel.setText("Reset the head branch successfully!");
+           //         branchToDeteleLabel.setVisible(true);
+              //      branchToDeteleLabel.setText("Reset the head branch successfully!");
+                    AlertPromptDialog.show(m_Stage,"Reset the head branch successfully!", "loadXML");
+
                 } catch (Exception ex) {
-                    turnOffDeleteLabelsBranchTab();
-                    branchToDeteleLabel.setVisible(true);
+                 //   turnOffDeleteLabelsBranchTab();
+                //    branchToDeteleLabel.setVisible(true);
                     branchToDeteleLabel.setText("An error occurred while trying reset the head branch!");
+                    AlertPromptDialog.show(m_Stage, "An error occurred while trying reset the head branch!", "loadXML");
+
                 }
             }
         };
@@ -585,31 +612,32 @@ public class MainSceneController {
     public void onPull(){
 
     }
-    public void onCheckConflicts(){
+    public void onCheckConflicts() {
         try {
-            ArrayList<String> res =logic.startMerge(branchMergeText.getText());
+            ArrayList<String> res = logic.startMerge(branchMergeText.getText(), 0);
 
-            if(res.get(0).equalsIgnoreCase("TRUE")){
-                if(AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "checkout")==0){
+            if (res == null) {
+                mergeLabel.setVisible(true);
+                mergeLabel.setText("No changes to merge!");
+            } else if (res.get(0).equalsIgnoreCase("TRUE")) {
+                if (AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "checkout") == 0) {
                     logic.deleteWorkingCopyChanges();
                     logic.CheckoutHeadBranch(branchMergeText.getText());
+                } else { //the user need to do commit in commit iab!!
                 }
-                else{ //the user need to do commit in commit iab!!
-                }
-            }
-            else{// father, me, branch to merge
+            } else {// father, me, branch to merge
                 turnOnMergeLabels();
                 originText.setText(res.get(0));
                 ouersText.setText(res.get(1));
                 theirsText.setText(res.get(2));
 
                 mergeLabel.setVisible(true);
-                mergeLabel.setText("Copy the selected changes to the After merge area");
+                mergeLabel.setText("Copy the selected changes to the After merge area :)");
 
             }
-            turnOffMergeLabels();
+           // turnOffMergeLabels();
         } catch (Exception ex) {
-            turnOffMergeLabels();
+            turnOffMergeLabels(false);
             mergeLabel.setVisible(true);
             mergeLabel.setText(ex.getMessage());
         }
@@ -617,11 +645,23 @@ public class MainSceneController {
 
     public void onSaveConflict() {
         try {
-            while (logic.checkIfThereIsMoreConflicts()) {
-                logic.handleSingleConflict(afterMergeText.getText());
+            ArrayList<String> res;
+            if(!logic.handleSingleConflict(afterMergeText.getText())){
+                MergeButton.setVisible(true);
+                setMergeScroll();
             }
+
+            while (logic.checkIfThereIsMoreConflicts()) {
+                setMergeScroll();
+                res = logic.handleSecondConflict();
+              //  turnOnMergeLabels();
+                originText.setText(res.get(0));
+                ouersText.setText(res.get(1));
+                theirsText.setText(res.get(2));
+            }
+
             MergeButton.setVisible(true);
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             mergeLabel.setVisible(true);
             mergeLabel.setText("Error: " + ex.getMessage());
             mergeLabel.setText("");
@@ -631,12 +671,17 @@ public class MainSceneController {
     public void onMerge() {
         try {
             logic.setAfterMerge();
-            mergeLabel.setVisible(true);
-            mergeLabel.setText("Merged successfully!");
+         //   mergeLabel.setVisible(true);
+         //   mergeLabel.setText("Merged successfully!");
+            AlertPromptDialog.show(m_Stage, "Merged successfully!", "loadXML");
+
+            turnOffMergeLabels(true);
         } catch (Exception ex) {
-            mergeLabel.setVisible(true);
-            mergeLabel.setText("Error: " + ex.getMessage());
-            mergeLabel.setText("");
+        //    mergeLabel.setVisible(true);
+       //     mergeLabel.setText("Error: " + ex.getMessage());
+       //     mergeLabel.setText("");
+            AlertPromptDialog.show(m_Stage, "Error: " + ex.getMessage(), "loadXML");
+
         }
     }
 
@@ -649,12 +694,16 @@ public class MainSceneController {
                 try {
                     logic.CreateNewBranch(branchToDeleteText.getText(), branchPointedCommitText.getText());
                     turnOffDeleteLabelsBranchTab();
-                    branchToDeteleLabel.setVisible(true);
-                    branchToDeteleLabel.setText("The new branch created successfully!");
+                    //branchToDeteleLabel.setVisible(true);
+                    //branchToDeteleLabel.setText("The new branch created successfully!");
+                    AlertPromptDialog.show(m_Stage, "The new branch created successfully!", "loadXML");
+
                 } catch (Exception ex) {
                     turnOffDeleteLabelsBranchTab();
-                    branchToDeteleLabel.setVisible(true);
-                    branchToDeteleLabel.setText("An error occurred while trying to add new branch!");
+                 //   branchToDeteleLabel.setVisible(true);
+                //    branchToDeteleLabel.setText("An error occurred while trying to add new branch!");
+                    AlertPromptDialog.show(m_Stage, "An error occurred while trying to add new branch!", "loadXML");
+
                 }
             }
         };
@@ -709,7 +758,9 @@ public class MainSceneController {
 
     private void turnOnLabelsCommitTab() {
         newCommitLabel.setVisible(true);
+        newCommitLabel.setText("Commit message:");
         newCommitMessageText.setVisible(true);
+        newCommitMessageText.setText("");
         saveNewCommitMessage.setVisible(true);
     }
 
@@ -736,6 +787,7 @@ public class MainSceneController {
         theBranchesLabel.setVisible(true);
         branchScroll.setVisible(true);
         branchText.setVisible(true);
+        branchText.setText("");
     }
 
     private void turnOffDeleteScrollBranchTab() {
@@ -766,6 +818,7 @@ public class MainSceneController {
 
     private void turnOnWCCommitTab() {
         workingCopyText.setVisible(true);
+        workingCopyText.setText("");
         workingCopyScroll.setVisible(true);
         workingCopyStatusLabel.setVisible(true);
     }
@@ -804,17 +857,24 @@ public class MainSceneController {
         turnOffConflictLabels();
     }
 
-    private void turnOffMergeLabels(){
+    private void setMergeScroll(){
+        theirsText.setText(" ");
+        ouersText.setText(" ");
+        originText.setText(" ");
+        afterMergeText.setText(" ");
+    }
+    private void turnOffMergeLabels(boolean isMerge){
         turnOnConflictLabels();
 
-       // checkConflictsButton.setVisible(false);
         MergeButton.setVisible(false);
         thiersLabel.setVisible(false);
         ouersLabel.setVisible(false);
         originLabel.setVisible(false);
         afterMergeLabel.setVisible(false);
-        mergeLabel.setVisible(false);
 
+        if(!isMerge){
+            mergeLabel.setVisible(false);
+        }
         theirsScroll.setVisible(false);
         ouersScroll.setVisible(false);
         afterMergeScroll.setVisible(false);
@@ -824,6 +884,7 @@ public class MainSceneController {
 
     private void turnOffConflictLabels(){
         checkConflictsButton.setVisible(false);
+        MergeButton.setVisible(false);
         branchMergeText.setVisible(false);
         branchMergeLabel.setVisible(false);
     }
@@ -831,6 +892,7 @@ public class MainSceneController {
     private void turnOnConflictLabels(){
         checkConflictsButton.setVisible(true);
         branchMergeText.setVisible(true);
+        branchMergeText.setText("");
         branchMergeLabel.setVisible(true);
     }
 
@@ -845,6 +907,6 @@ public class MainSceneController {
         FilesAndCommitTab.setDisable(true);
         BranchesTab.setDisable(true);
         MergaTab.setDisable(true);
-        CollabortionTab.setDisable(true);
+       // CollabortionTab.setDisable(true);
     }
 }

@@ -449,7 +449,7 @@ public class Repository {
             try {
                 Branch newBranch = findBranch(pointtedBranch);
 
-                Utility.writeToFile(sha1Hex(newBranch.getpCommit().toString()),
+                Utility.writeToFile(sha1Hex(newBranch.getpCommit().toString())+", false, false, ",
                         branchPath + branchName + ".txt");
                 AddBranchToList(branchName);
                 break;
@@ -534,7 +534,7 @@ public class Repository {
             if (!isBranchFound) {
                 throw new Exception("Branch name were not found, Please try again!");
             }
-            deleteWorkingCopyChanges();
+          //  deleteWorkingCopyChanges();
             switchBranch(branchName);
         }
         return false;
@@ -549,7 +549,6 @@ public class Repository {
         }
     }
 
-    //chris
     private void switchBranch(String branchName) throws Exception {
         Branch branch;
 
@@ -1537,10 +1536,13 @@ public class Repository {
     }
 
 
-    public ArrayList<String> startMerge(String branchNameToMerge) throws Exception {
+    public ArrayList<String> startMerge(String branchNameToMerge, int init) throws Exception {
+//       branchToMergeChangesIndex=init;
+//       headBranchChangesIndex=init;
         Branch branchToMerge;
         Commit ancestorCommit;
         ArrayList<String> resList = new ArrayList<>();
+
         try {
             branchToMerge = findBranchByName(branchNameToMerge);
             if (branchToMerge == null || branchNameToMerge == "") {
@@ -1565,10 +1567,16 @@ public class Repository {
             headBranchChanges = compareToAncestorFather(this.getActiveBranch().getpCommit(), ancestorCommit);
             branchToMergeChanges = compareToAncestorFather(branchToMerge.getpCommit(), ancestorCommit);
             commitAfterMerge = ancestorCommit;
+           if(headBranchChanges == null || branchToMergeChanges==null)
+               return null;
             return handleConflicts(headBranchChanges, branchToMergeChanges, commitAfterMerge);
         } catch (Exception ex) {
             throw new Exception("Could not find commit for merge!");
         }
+    }
+
+    public ArrayList<String> handleSecondConflict() throws IOException {
+        return handleConflicts(headBranchChanges, branchToMergeChanges, commitAfterMerge);
     }
 
     public void setAfterMerge() throws IOException {
@@ -1577,15 +1585,15 @@ public class Repository {
         CreateWC();
     }
 
-    public void handleSingleConflict(String content) throws IOException {
-        branchToMergeChangesIndex++;
-        headBranchChangesIndex++;
-        Blob headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex);
+    public void handleSingleConflict(String content)  {
+        Blob headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex-1);
         Blob blob = createNewBlobForMerge(Item.TypeOfChangeset.NEW, content, headBranchBlob);
         commitAfterMerge.updateBlobInCommit(blob);
+       // branchToMergeChangesIndex++;
+       // headBranchChangesIndex++;
     }
 
-    public void setCommitAfterMerge( Commit commitAfterMerge) throws IOException {
+    public void setCommitAfterMerge(Commit commitAfterMerge) throws IOException {
         commitsList.add(commitAfterMerge);
         Utility.writeToFile(sha1Hex(this.activeBranch.getpCommit().toString()), branchPath + this.activeBranch.getName() + ".txt");
         activeBranch.setpCommit(commitAfterMerge);
@@ -1639,17 +1647,18 @@ public class Repository {
             if (commitToCompareMap.containsKey(pair.getKey())) {
                 if (!ancestorMap.containsKey(pair.getKey())) {
                     Blob blob = findBlobInRootFolder(commitToCompare.getRootFolder(), pair.getKey().toString());
-                    blob.setTypeOfChangeset(Item.TypeOfChangeset.NEW);
-                    resList.add(blob);  //verify pair.getKey().toString()
-                    //  System.out.println("New file : " + pair.getKey());
-                    flagChange = true;
-                } else // if(committedMap.containsKey((pair.getKey())))
+                   if(blob!= null) {
+                       blob.setTypeOfChangeset(Item.TypeOfChangeset.NEW);
+                       resList.add(blob);  //verify pair.getKey().toString()
+                       flagChange = true;
+                   }
+                }
+                else // if(committedMap.containsKey((pair.getKey())))
                 {
                     if (!ancestorMap.containsValue(pair.getValue())) {
                         Blob blob = findBlobInRootFolder(commitToCompare.getRootFolder(), pair.getKey().toString());
                         blob.setTypeOfChangeset(Item.TypeOfChangeset.MODIFIED);
                         resList.add(blob);
-                        //  System.out.println("Modified : " + pair.getKey());
                         flagChange = true;
                     }
                 }
@@ -1660,24 +1669,24 @@ public class Repository {
                 Blob blob = findBlobInRootFolder(ancestorCommit.getRootFolder(), pair.getKey().toString());
                 blob.setTypeOfChangeset(Item.TypeOfChangeset.DELETED);
                 resList.add(blob);
-                //             System.out.println("Deleted : " + pair.getKey());
                 flagChange = true;
             }
         }
         if (!flagChange) {
-            System.out.println("No changes!");//todo  case one of the commits is same as father commit
-            //   return ;
+            return null;
         }
         return resList;
     }
-    private Blob findBlobInRootFolder(Folder folder, String Path) {
 
+    private Blob findBlobInRootFolder(Folder folder, String Path) {
         for (Item item : folder.getItemsArray()) {
             if (item.getType().toString().equalsIgnoreCase(Item.Type.BLOB.toString())) {
                 if (item.getPath().equalsIgnoreCase(Path))
                     return (Blob) item;
             } else {
-                return findBlobInRootFolder((Folder) item, Path);
+                Blob temp= findBlobInRootFolder((Folder) item, Path);
+                if(temp!=null)
+                   return temp;
             }
         }
         return null;
@@ -1694,10 +1703,9 @@ public class Repository {
                 inputCommit = findCommitInCommitList(inputCommit.getPrecedingCommit());
             }
             currentCommit = findCommitInCommitList(currentCommit.getPrecedingCommit());
-            inputCommit = findCommitInCommitList(startingCommit.getPrecedingCommit());
-            startingCommit = inputCommit;
+            inputCommit=startingCommit;
         }
-        return null;
+        return this.activeBranch.getpCommit();
     }
 
     private Commit findCommitInCommitList(String sha1) {
@@ -1759,28 +1767,28 @@ public class Repository {
 
     public void headBranchChangeLoop(int headBranchChangesSize, Commit commitAfterMerge, List<Item> headBranchChanges) {
         Blob headBranchBlob;
-        //while (headBranchChangesIndex != headBranchChangesSize) {
         if(headBranchChangesIndex != headBranchChangesSize) {
             headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex);
             commitAfterMerge.updateBlobInCommit(headBranchBlob);
             headBranchChangesIndex++;
         }
-        else {
-            headBranchConflict=false;
+        //if((headBranchChangesIndex +1 == headBranchChangesSize)||
+              if(headBranchChangesIndex  == headBranchChangesSize) {
+            headBranchConflict = false;
         }
     }
 
     public void branchToMergeChangesLoop( int branchToMergeChangesSize, Commit commitAfterMerge,  List<Item> branchToMergeChanges) {
         Blob branchToMergeBlob;
-      //  while (branchToMergeChangesIndex != branchToMergeChangesSize) {
+        //  while (branchToMergeChangesIndex != branchToMergeChangesSize) {
         if (branchToMergeChangesIndex != branchToMergeChangesSize) {
             branchToMergeBlob = (Blob) branchToMergeChanges.get(branchToMergeChangesIndex);
             commitAfterMerge.updateBlobInCommit(branchToMergeBlob);
             branchToMergeChangesIndex++;
         }
-        else
-        {
-            branchToMergeConflict=false;
+           // if ((branchToMergeChangesIndex - 1 == branchToMergeChangesSize)||
+            if(branchToMergeChangesIndex  == branchToMergeChangesSize) {
+                branchToMergeConflict = false;
         }
     }
 
