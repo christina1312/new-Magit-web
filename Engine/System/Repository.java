@@ -1373,15 +1373,20 @@ public class Repository {
         String branchFileData = readFromFile(filePath);
 
         String[] partsForName = branchFileData.split(", ");
-
+        String temp;
         nameHead.delete();
         nameHead = new File(filePath);
         nameHead.createNewFile();
 
         partsForName[0]=sha1Hex(this.activeBranch.getpCommit().toString());
         String delimiter=", ";
+        if(partsForName[3]!= null)
+             temp=partsForName[3];
+        else {
+            temp = null;
+        }
         Utility.writeToFile(partsForName[0]+delimiter+partsForName[1]+
-                delimiter+partsForName[2]+delimiter+partsForName[3], filePath);
+                delimiter+partsForName[2]+delimiter+temp, filePath);
 
     }
 
