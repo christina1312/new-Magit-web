@@ -50,6 +50,7 @@ public class Repository {
     private boolean branchToMergeConflict=true;
     private boolean isInternalBranchFolderCreated=false;
     private boolean  isRepoCloned=false;;
+    static boolean isFetching=false;
 
     public Repository(User user){
         branchesList = new ArrayList<>();
@@ -322,9 +323,17 @@ public class Repository {
     private String findBlobContent(String sha1, String path, File unZipFilesDir) throws Exception {
         String res = null;
         String unzipName = "";
-        String pathObjects = magitPath + "\\objects";
+        String pathObjects;
+        String unzippedfiles;
+        if (!isFetching) {
+             pathObjects = magitPath + "\\objects";
+             unzippedfiles = magitPath + "\\unzippedfiles";
+        }
+        else{
+            pathObjects = remote.getLocation() + "\\.magit\\objects";
+            unzippedfiles = remote.getLocation()  + "\\.magit\\unzippedfiles";
+        }
         File[] filesObjects = new File(pathObjects).listFiles();
-        String unzippedfiles = magitPath + "\\unzippedfiles";
         File[] unzippedfilesObjects;
 
         try {
@@ -357,8 +366,16 @@ public class Repository {
         if (FolderSha1.equalsIgnoreCase("") || FolderSha1 == null) {
             System.out.println(("Cannnot find folder"));//  return null;
         }
-        String objectsPath = magitPath + "\\objects";
-        String unzippedfiles = magitPath + "\\unzippedfiles";
+        String objectsPath;
+        String unzippedfiles;
+        if (!isFetching) {
+             objectsPath = magitPath + "\\objects";
+             unzippedfiles = magitPath + "\\unzippedfiles";
+        }
+        else {
+            objectsPath = remote.getLocation() + "\\.magit\\objects";
+            unzippedfiles = remote.getLocation() + "\\.magit\\unzippedfiles";
+        }
         File unZipFilesDir = new File(unzippedfiles);
         File[] filesObjects = new File(objectsPath).listFiles();
         File[] unzippedfilesObjects;
@@ -579,7 +596,6 @@ public class Repository {
 
     private void switchBranch(String branchName) throws Exception {
         Branch branch;
-
         for (Branch currBranch : branchesList) {
             if (currBranch.getName().equalsIgnoreCase(branchName)) {
                 File[] filesRepo = new File(location).listFiles();
@@ -592,6 +608,7 @@ public class Repository {
                 createWCRec(branch.getpCommit().getRootFolder(), this.getLocation(), true);
                 Utility.writeToFile(branchName, location + "\\.magit\\branches\\HEAD.txt");
                 this.activeBranch = branch;
+                break;
             }
         }
     }
@@ -1376,6 +1393,9 @@ public class Repository {
         newFolder.setRoot(true);
         Commit commit = new Commit(newFolder, commitDescription, this.user, getTime(), sha1Hex(activeBranch.getpCommit().toString()),null);
         commit.setPrecedingCommit(sha1Hex(this.getActiveBranch().getpCommit().toString()));
+        String dasfdas1 = newFolder.toString();
+        String dasfdas2=activeBranch.getpCommit().getRootFolder().toString();
+
         if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) {
             throw new Exception("There is no changes since the last commit.\n");
         }
@@ -2046,30 +2066,69 @@ public class Repository {
         }
     }
 
-    public void fetch() throws Exception {
-        if(this.remote.getLocation()== null){
-            throw new Exception("There is no remote repository");
-        }
-        String pathRR = this.remote.getLocation() + "\\.magit\\branches";
-        String pathLR = this.location + "\\.magit\\branches";
-        File[] branchesRR = new File(pathRR).listFiles();
+   public void fetch() throws Exception {
+       isFetching=true;
+       String pathRR = this.remote.getLocation() + "\\.magit\\branches";
+       String pathLR = this.location + "\\.magit\\branches";
+       File[] branchesRR = new File(pathRR).listFiles();
+       String unzippedfiles = remote.getLocation() + "\\.magit\\unzippedfiles";
+       File unZipFilesDir = new File(unzippedfiles);
+       unZipFilesDir.mkdirs();
+       for (File branch : branchesRR) {
+           Path p = Paths.get(branch.getPath());
+           File tmpFile = new File(pathLR + "\\" + p.getFileName().toString());
+           if (!tmpFile.exists()) { //add new branch
+               copyAllSubTreeToLR(p.getFileName().toString());
+           } else { //the branch is exists
+               calculateAndCopyToLR(p.getFileName().toString());
+           }
+       }
+       fixItemsPathes(remote.getLocation(),location);//todo ooo
+       isFetching=false;
+   }
+    private void calculateAndCopyToLR(String name) throws Exception {
+        Branch newBranch;
+        String branchName=name.replace(".txt","");
+        String pathRR = this.remote.getLocation() + "\\.magit\\branches\\";
+        String pathRemoteBranches = this.location + "\\.magit\\branches\\" + remote.getName();
+        String   unzippedfiles= remote.getLocation() + "\\.magit\\unzippedfiles";
+        File unZipFilesDir = new File(unzippedfiles);
+        File tmpFileRR = new File(pathRR + name);
+        File tmpFileRemoteBranches = new File(pathRemoteBranches +"\\"+ name);
+        String[] partsRR = readFromFile(tmpFileRR.getPath()).split(", ");
+        String[] partsRemoteBranches = readFromFile(tmpFileRemoteBranches.getPath()).split(", ");
+        File tmpFile = new File(pathRR + name);
+        String dataFromBranch = readFromFile(tmpFile.getPath());
+        String[] parts = dataFromBranch.split(", ");
+        String sha1 = parts[0];
 
-        for (File branch : branchesRR) {
-            Path p = Paths.get(branch.getPath());
-            File tmpFile = new File(pathLR + "\\" + p.getFileName().toString());
-            if (!tmpFile.exists()) { //add new branch
-                copyAllSubTreeToLR(p.getFileName().toString());
-            } else { //the branch is exists
-                calculateAndCopyToLR(p.getFileName().toString());
-            }
+        if (partsRemoteBranches[0].equalsIgnoreCase(partsRR[0])) // do nothing
+            return;
+        else {
+            String test = remote.getName()+ "\\"+ name;//todo
+            newBranch = findBranch(remote.getName()+ "\\"+ branchName);
+            deleteBranchFromList(remote.getName()+ "\\"+ branchName);
+
+            findNextCommit(sha1, newBranch, this.remote.getLocation(), unZipFilesDir, true);
+
+            CreateSpecificBranchesFile(newBranch, this.location + "\\.magit\\branches\\");
+            branchesList.add(newBranch);
+
         }
+
     }
-
     private void copyAllSubTreeToLR(String name) throws Exception {
         Branch newBranch;
         String trackingAfter = null;
         boolean isTracking, isRemote;
-        String unzippedfiles = magitPath + "\\unzippedfiles";
+
+        String unzippedfiles;
+        if (!isFetching){
+            unzippedfiles = magitPath + "\\unzippedfiles";
+        }
+        else{
+            unzippedfiles = remote.getLocation() + "\\.magit\\unzippedfiles";
+        }
         File unZipFilesDir = new File(unzippedfiles);
         File tmpFile = new File(this.remote.getLocation() + "\\.magit\\branches\\" + name);
         String pathLR = this.location + "\\.magit\\branches\\";
@@ -2089,36 +2148,8 @@ public class Repository {
         FileUtils.copyFile(tmpFile, new File(pathLR, tmpFile.getName()));
 
         //copy the folders in objects
-        ZipAllItemInRepository(this.location + "\\.magit\\objects"); // ???
+        //ZipAllItemInRepository(this.location + "\\.magit\\objects"); // ???
     }
-
-    private void calculateAndCopyToLR(String name) throws Exception {
-        Branch newBranch;
-        String unzippedfiles = magitPath + "\\unzippedfiles";
-        File unZipFilesDir = new File(unzippedfiles);
-        String pathRR = this.remote.getLocation() + "\\.magit\\branches\\";
-        String pathLR = this.location + "\\.magit\\branches\\";
-
-        File tmpFileRR = new File(pathRR + name);
-        File tmpFileLR = new File(pathLR + name);
-        String[] partsRR = readFromFile(tmpFileRR.getPath()).split(", ");
-        String[] partsLR = readFromFile(tmpFileLR.getPath()).split(", ");
-        File tmpFile = new File(pathRR + name);
-
-        String dataFromBranch = readFromFile(tmpFile.getPath());
-        String[] parts = dataFromBranch.split(", ");
-        String sha1 = parts[0];
-
-        if (partsLR[0].equalsIgnoreCase(partsRR[0])) // do nothing
-            return;
-        else {
-            newBranch = findBranch(name);
-            findNextCommit(sha1, newBranch, this.remote.getLocation(), unZipFilesDir, true);
-            CreateSpecificBranchesFile(newBranch, this.location + "\\.magit\\branches");
-        }
-        ZipAllItemInRepository(this.location + "\\.magit\\objects"); // ???
-    }
-
     private void CreateSpecificBranchesFile(Branch branch, String path) throws IOException {
         String delimiter = ", ";
         String branchToString = sha1Hex(branch.getpCommit().toString()) + delimiter + branch.isRemote() +
