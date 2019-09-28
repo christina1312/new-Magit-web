@@ -520,17 +520,7 @@ public class Repository {
         deleteBranchFromList(branchName);
     }
 
-    public boolean resetHeadBranch(String name) throws Exception {
-        Boolean isThereOpenChanges = true;
-
-        File file = new File(location);
-        Folder newFolder = createCommittedWC(file);
-        if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) { // todo  verify
-            isThereOpenChanges = false;
-        }
-        if (isThereOpenChanges) {
-            return true;
-        }
+    public void resetHeadBranch(String name) throws Exception {
         //for instance
         Commit newCommit=findBranch(name).getpCommit();
         String newSha1=sha1Hex(newCommit.toString());
@@ -555,32 +545,31 @@ public class Repository {
         //for WC
         deleteWorkingCopyChanges();
         createWCRec(this.getActiveBranch().getpCommit().getRootFolder(), this.getLocation(), true);
-
-        return false;
     }
 
-    public boolean CheckoutHeadBranch(String branchName) throws Exception {
+    public void CheckoutHeadBranch(String branchName) throws Exception {
+        boolean isBranchFound = false;
+        for (Branch currBranch : branchesList) {
+            if (currBranch.getName().equalsIgnoreCase(branchName)) {
+                isBranchFound = true;
+            }
+        }
+        if (!isBranchFound) {
+            throw new Exception("Branch name were not found, Please try again!");
+        }
+        switchBranch(branchName);
+    }
+
+    public boolean checkIfThereIsChanges() throws IOException, ParseException {
         Boolean isThereOpenChanges = true;
-        boolean isBranchFound=false;
         File file = new File(location);
         Folder newFolder = createCommittedWC(file);
-        if(newFolder!=null) {
-            if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) {
-                isThereOpenChanges = false;
-            }
-            if (isThereOpenChanges) {
-                return true;
-            } else {
-                for (Branch currBranch : branchesList) {
-                    if (currBranch.getName().equalsIgnoreCase(branchName)) {
-                        isBranchFound = true;
-                    }
-                }
-                if (!isBranchFound) {
-                    throw new Exception("Branch name were not found, Please try again!");
-                }
-                switchBranch(branchName);
-            }
+
+        if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) {
+            isThereOpenChanges = false;
+        }
+        if (isThereOpenChanges) {
+            return true;
         }
         return false;
     }
@@ -2009,7 +1998,6 @@ public class Repository {
             this.getCommitsList().add(newCommit);
     }
 
-    //check directory todo
     public void cloneRepository(String pathRR, String pathLR, String RepositoryName) throws Exception {
         File file = new File(pathLR);
         if (!file.isDirectory()) {
@@ -2163,7 +2151,13 @@ public class Repository {
     }
 
     public Commit showCommitData(String commitName) throws Exception {
-        return findBranch(commitName).getpCommit();
+      try{
+          Branch newBranch=findBranch(commitName);
+          return newBranch.getpCommit();
+      }
+      catch (Exception ex){
+          throw ex;
+      }
     }
 
     public boolean checkIfThereIsMoreConflicts() {
