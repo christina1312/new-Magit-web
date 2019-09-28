@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,8 +75,8 @@ public class BasicMAGitManager {
 
     }
 
-    public boolean CheckoutHeadBranch(String branchName) throws Exception {
-        return repository.CheckoutHeadBranch(branchName);
+    public void CheckoutHeadBranch(String branchName) throws Exception {
+         repository.CheckoutHeadBranch(branchName);
     }
 
     public void ShowActiveBranchHistory() {
@@ -86,8 +87,8 @@ public class BasicMAGitManager {
         return user;
     }
 
-    public boolean resetHeadBranch(String name) throws Exception {
-        return repository.resetHeadBranch(name);
+    public void resetHeadBranch(String name) throws Exception {
+         repository.resetHeadBranch(name);
     }
 
     private boolean checkIfReposoitoryExists(String path) {
@@ -152,9 +153,14 @@ public class BasicMAGitManager {
         repository.deleteWorkingCopyChanges();
     }
 
+    public boolean checkIfThereIsChanges() throws IOException, ParseException {
+        return repository.checkIfThereIsChanges();
+    }
+
     public ArrayList<String> startMerge(String branchToMerge, int init) throws Exception {
         return repository.startMerge(branchToMerge, init);
     }
+
     public ArrayList<String> handleSecondConflict() throws Exception {
         return repository.handleSecondConflict();
     }

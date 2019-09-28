@@ -438,17 +438,27 @@ public class MainSceneController {
     }
 
     public void onShowCurrentCommitFileSystem() {
+        turnOffWCCommitTab();
+        workingCopyText.setVisible(false);
         currentCommitText.setVisible(true);
         showCommitButton.setVisible(true);
     }
 
-    public void onShowCommit() throws Exception {
-        turnOffWCCommitTab();
-        turnOffLabelsCommitTab();
-        turnOnGridsCommitTab();
-        branchToDeteleLabel.setVisible(false);
-        setRepositoryGridPane();
-        setCommitGridPane(currentCommitText.getText());
+    public void onShowCommit() {
+      try {
+          turnOffWCCommitTab();
+          turnOffLabelsCommitTab();
+          turnOnGridsCommitTab();
+          currentCommitText.setVisible(false);
+          branchToDeteleLabel.setVisible(false);
+          setRepositoryGridPane();
+          setCommitGridPane(currentCommitText.getText());
+      }
+      catch(Exception ex){
+          turnOffGridsCommitTab();
+          AlertPromptDialog.show(m_Stage, "Error : " + ex.getMessage(), "loadXML");
+
+      }
     }
 
     private void setCommitGridPane(String commitName) throws Exception {
@@ -466,6 +476,7 @@ public class MainSceneController {
 
     public void onShowWorkingCopyStatus() throws IOException {
         turnOnWCCommitTab();
+        showCommitButton.setVisible(false);
         turnOffLabelsCommitTab();
         turnOffGridsCommitTab();
         workingCopyText.setText(logic.ShowWorkingCopyStatus());
@@ -500,7 +511,7 @@ public class MainSceneController {
             public void handle(MouseEvent event) {
                 try {
                     turnOffDeleteLabelsBranchTab();
-                    if (logic.CheckoutHeadBranch(branchToDeleteText.getText())) {
+                    if (logic.checkIfThereIsChanges()) {
                         int res = AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "checkout");
                         if (res == 0) {
                             //delete all changes
@@ -531,7 +542,7 @@ public class MainSceneController {
         EventHandler<ActionEvent> event = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 try {
-                    if(logic.resetHeadBranch(branchToDeleteText.getText())) {
+                    if(logic.checkIfThereIsChanges()) {
                         if(AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "reset")==0){
                             //delete all changes
                             logic.deleteWorkingCopyChanges();
@@ -540,7 +551,7 @@ public class MainSceneController {
                             AlertPromptDialog.show(m_Stage,"Reset the head branch successfully!", "loadXML");
                         }
                         else{ // == 1 : commit
-                            //the user need to do commit in commit iab!!
+                            //the user need to do commit in commit tab!!
                         }
                     }
                     else {
@@ -712,6 +723,7 @@ public class MainSceneController {
     public void onShowBranchesFileSystem() {
         turnOnScrollBranchTab();
         turnOffDeleteLabelsBranchTab();
+        showCommitButton.setVisible(false);
         branchText.setText(logic.ShowAllBranchesFileSystem());
     }
 
