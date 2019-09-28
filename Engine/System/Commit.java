@@ -210,6 +210,12 @@ public class Commit implements IZipable {
 
     public String getCreatedBy(){ return this.user.toString();}
 
+    public  void fixItemsPathes(String wrongPath, String correctPath)
+    {
+        this.rootFolder.fixItemsPathes(wrongPath,correctPath);
+        this.rootFolder.changePath(wrongPath,correctPath);
+
+    }
 }
 
 

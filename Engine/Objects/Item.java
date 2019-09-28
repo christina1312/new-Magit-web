@@ -64,4 +64,7 @@ abstract public class Item implements IZipable {
         System.out.println("Last updated in: "+lastUpdateDate+"\n");
         System.out.println("------------------------>");
     }
+    public void changePath(String wrongPath, String correctPath) {
+        path = path.replace(wrongPath, correctPath);
+    }
 }

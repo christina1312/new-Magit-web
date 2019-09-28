@@ -17,6 +17,12 @@ public class Branch {
     public void setpCommit(Commit newCommit) { pCommit=newCommit; }
     public boolean getIsActive() { return isActive; }
 
+    public Branch(Branch branch) {
+        this.name = branch.name;
+        this.pCommit = branch.pCommit;
+        this.isActive = branch.isActive;
+    }
+
     public Branch(String name, Commit pCommit, boolean isActive, boolean isRemote, boolean isTracking, String trackingAfter) {
         this.name = name;
         this.pCommit = pCommit;
@@ -65,4 +71,7 @@ public class Branch {
     public String getTrackingAfter() {
         return trackingAfter;
     }
+    public void setTrackingAfter(String trackingAfter){this.trackingAfter =trackingAfter; }
+    public void setIsRemote(boolean isRemote){this.isRemote =isRemote; }
+    public void setName(String name){this.name =name;}
 }
