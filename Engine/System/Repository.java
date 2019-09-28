@@ -49,6 +49,7 @@ public class Repository {
     private boolean headBranchConflict=true;
     private boolean branchToMergeConflict=true;
     private boolean isInternalBranchFolderCreated=false;
+    private boolean  isRepoCloned=false;;
 
     public Repository(User user){
         branchesList = new ArrayList<>();
@@ -133,17 +134,23 @@ public class Repository {
         String dataFromBranch;
         String headBranch = "";
         String branchName;
+
         boolean isActive;
         boolean isRemote;
         boolean isTracking;
         String trackingAfter = null;
-        magitPath = path + "\\.magit";
         String labriryName="";
-
         String contentName = path;
         String[] partsForName = contentName.split("\\\\");
         this.name = partsForName[partsForName.length - 1];
         this.location = path;
+        if (!isRepoCloned){
+        magitPath = path + "\\.magit";}
+        else
+        {
+            magitPath = remote.getLocation()+"\\.magit";
+        }
+
 
         String pathBranches = path + "\\.magit\\branches";
         File[] filesBranches = new File(pathBranches).listFiles();
@@ -170,13 +177,15 @@ public class Repository {
                     String[] parts = dataFromBranch.split(", ");
                     isRemote = parts[1].equalsIgnoreCase("TRUE");
                     isTracking = parts[2].equalsIgnoreCase("TRUE");
-                    if (isTracking)
+                    if (isTracking) {
                         trackingAfter = parts[3];
+                    }
                     Branch newBranch = new Branch(branchName, null, isActive, isRemote, isTracking, trackingAfter);
                     sha1 = parts[0];
                     findNextCommit(sha1, newBranch, path, unZipFilesDir, true);
-                    if (isActive)
+                    if (isActive) {
                         this.activeBranch = newBranch;
+                    }
                     branchesNames.add(newBranch);
                 }
             }
@@ -184,6 +193,7 @@ public class Repository {
                 labriryName=branchFile.getName();
             }
         }
+        if (!labriryName.equals("")){
         pathBranches = path + "\\.magit\\branches\\" + labriryName;
         filesBranches = new File(pathBranches).listFiles();
         if (filesBranches != null) {
@@ -208,6 +218,7 @@ public class Repository {
                     branchesNames.add(newBranch);
                 }
             }
+        }
     }
         this.branchesList = branchesNames;
         this.branchPath = String.format("%s\\branches\\", magitPath);
@@ -428,7 +439,6 @@ public class Repository {
 
         String masterPath = path + "\\.magit\\branches\\master.txt";
         String headPath= path + "\\.magit\\branches\\HEAD.txt";
-
         //for folders
         //TODO verify null
         String branchToString = null + delimiter + "false" + delimiter + "false" + delimiter + "false";
@@ -1986,6 +1996,7 @@ public class Repository {
             File NameDir = new File(pathLR);
             NameDir.mkdirs();
         }
+
         makeDirectories(pathLR);
         String branchFileSource = pathLR + "\\.magit\\branches";
         String branchFileTarget = pathLR + "\\.magit\\branches\\" + RepositoryName;
@@ -2009,8 +2020,15 @@ public class Repository {
         } catch (Exception e) {
            throw e;
         }
+
         ChangeRepository(pathRR); // for the instance
         setRemoteReference(RepositoryName, pathRR);
+        createRemoteBrances();
+        fixItemsPathes(pathRR,pathLR);//todo ooo
+        this.branchPath= pathLR + "\\.magit\\branches";
+        this.objectPath= pathLR + "\\.magit\\objects";
+        isRepoCloned=true;
+        magitPath = pathLR+ "\\.magit" ;
         this.location = pathLR;
         this.name = RepositoryName;
 
@@ -2121,4 +2139,30 @@ public class Repository {
         return this.headBranchConflict || this.branchToMergeConflict;
     }
 
+    public void createRemoteBrances(){
+        List<Branch> currbranchesList = new ArrayList<Branch>();
+        for (Branch branch : branchesList)
+        {
+            Branch newBranch = new Branch(branch);
+            newBranch.setName(remote.getName()+"\\"+branch.getName());
+            newBranch.setIsRemote(true);
+            newBranch.setTrackingAfter(branch.getName());
+            currbranchesList.add(newBranch);
+        }
+        branchesList.addAll(currbranchesList);
+    }
+    public void fixItemsPathes(String wrongPath, String correctPath) {
+        String[] partsOfWrongPath = wrongPath.split("\\\\");
+        String[] partsOFCorrectPath = correctPath.split("\\\\");
+        wrongPath = partsOfWrongPath[partsOfWrongPath.length - 1];
+        correctPath = partsOFCorrectPath[partsOFCorrectPath.length - 1];
+        for (Branch branch : branchesList)
+        {
+            branch.getpCommit().fixItemsPathes(wrongPath, correctPath);
+        }
+        for (Commit commit : commitsList) {
+            commit.fixItemsPathes(wrongPath, correctPath);
+        }
+
+    }
 }

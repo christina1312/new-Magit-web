@@ -133,5 +133,20 @@ public class Folder extends Item {
     {
         this.ItemsArray.remove(folder);// todo check if item removed
     }
+    public void fixItemsPathes(String wrongPath, String correctPath){
+
+        for (Item item: this.ItemsArray)
+        {
+            if (item.getType().equals(Item.Type.FOLDER)){
+                Folder folder = (Folder)item;
+                folder.fixItemsPathes(wrongPath,correctPath);
+            }
+            item.changePath(wrongPath,correctPath);
+            if (name.equalsIgnoreCase(wrongPath))
+            {
+                this.setName(correctPath);
+            }
+        }
+    }
 
 }
