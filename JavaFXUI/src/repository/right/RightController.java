@@ -1,20 +1,18 @@
-//package right;
+//package repository.right;
 //
-//import MainScene.MainSceneController;
 //import System.Commit;
 //import Objects.Item;
-//import System.Branch; // ?? branch.Branch
+//import System.Branch;
 //import com.fxgraph.edges.Edge;
 //import com.fxgraph.graph.Graph;
 //import com.fxgraph.graph.ICell;
 //import com.fxgraph.graph.Model;
 //import com.fxgraph.graph.PannableCanvas;
-//import com.sun.corba.se.impl.orbutil.graph.Graph;
 //import common.constants.NumConstants;
 //import javafx.fxml.FXML;
 //import javafx.scene.control.ScrollPane;
-//
-//
+//import MainScene.MainSceneController;
+//import repository.right.layout.CommitTreeLayout;
 //
 //import java.util.HashMap;
 //import java.util.List;

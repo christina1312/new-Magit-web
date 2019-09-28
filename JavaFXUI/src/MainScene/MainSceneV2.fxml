@@ -112,6 +112,8 @@
                                     <TextArea fx:id="workingCopyText" prefHeight="222.0" prefWidth="359.0" />
                                  </content>
                               </ScrollPane>
+                                    <TextField fx:id="currentCommitText" layoutX="22.0" layoutY="125.0" prefHeight="26.0" prefWidth="246.0" text="Curren commit name:" />
+                                    <Button fx:id="showCommitButton" layoutX="21.0" layoutY="162.0" mnemonicParsing="false" onMouseClicked="#onShowCommit" prefHeight="26.0" prefWidth="124.0" text="Show!" />
                            </children>
                         </AnchorPane>
                      </children>

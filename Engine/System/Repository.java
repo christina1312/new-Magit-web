@@ -493,11 +493,9 @@ public class Repository {
         deleteBranchFromList(branchName);
     }
 
-    //chris
     public boolean resetHeadBranch(String name) throws Exception {
         Boolean isThereOpenChanges = true;
 
-        //find changes
         File file = new File(location);
         Folder newFolder = createCommittedWC(file);
         if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) { // todo  verify
@@ -507,8 +505,25 @@ public class Repository {
             return true;
         }
         //for instance
-        this.setActiveBranch(findBranch(name));
-        Utility.writeToFile(this.getActiveBranch().getName(), location + "\\.magit\\branches\\HEAD.txt");
+        Commit newCommit=findBranch(name).getpCommit();
+        String newSha1=sha1Hex(newCommit.toString());
+        String nameHead=readFromFile(location + "\\.magit\\branches\\HEAD.txt");
+        String newBranchPath=location +"\\.magit\\branches\\"+nameHead + ".txt";
+        File headFile = new File(newBranchPath);
+        String res = readFromFile(headFile.getPath());
+
+        String[] partsForName = res.split(", ");
+
+        headFile.delete();
+        headFile = new File(newBranchPath);
+        headFile.createNewFile();
+
+        partsForName[0]=newSha1;
+        String delimiter=", ";
+        Utility.writeToFile(partsForName[0]+delimiter+partsForName[1]+
+                delimiter+partsForName[2]+delimiter+partsForName[3], headFile.getPath());
+
+        this.getActiveBranch().setpCommit(newCommit);
 
         //for WC
         deleteWorkingCopyChanges();
@@ -522,22 +537,23 @@ public class Repository {
         boolean isBranchFound=false;
         File file = new File(location);
         Folder newFolder = createCommittedWC(file);
-        if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) { // todo  verify
-            isThereOpenChanges = false;
-        }
-        if (isThereOpenChanges) {
-            return true;
-        } else {
-            for (Branch currBranch : branchesList) {
-                if (currBranch.getName().equalsIgnoreCase(branchName)) {
-                    isBranchFound=true;
+        if(newFolder!=null) {
+            if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) {
+                isThereOpenChanges = false;
+            }
+            if (isThereOpenChanges) {
+                return true;
+            } else {
+                for (Branch currBranch : branchesList) {
+                    if (currBranch.getName().equalsIgnoreCase(branchName)) {
+                        isBranchFound = true;
+                    }
                 }
+                if (!isBranchFound) {
+                    throw new Exception("Branch name were not found, Please try again!");
+                }
+                switchBranch(branchName);
             }
-            if (!isBranchFound) {
-                throw new Exception("Branch name were not found, Please try again!");
-            }
-          //  deleteWorkingCopyChanges();
-            switchBranch(branchName);
         }
         return false;
     }
@@ -605,7 +621,7 @@ public class Repository {
                 throw new Exception("File is not exists \n");
             if (!ContainsXml(xmlPath))
                 throw new Exception("File is not finish with '.xml' ending \n");
-            magitRepository = deserializeFromFile(file); // need to from repository
+            magitRepository = deserializeFromFile(file);
 
             if (magitRepository != null) {
                 if(CreateRealRepository(magitRepository.getLocation()))
@@ -1358,7 +1374,26 @@ public class Repository {
         commit.zipAnItem(location + "\\.magit\\objects");
         commitsList.add(commit);
         this.activeBranch.setpCommit(commit);
-        Utility.writeToFile(sha1Hex(this.activeBranch.getpCommit().toString()), branchPath + this.activeBranch.getName() + ".txt");
+        createBranchFile(branchPath + this.activeBranch.getName() + ".txt");
+ //       Utility.writeToFile(sha1Hex(this.activeBranch.getpCommit().toString()), branchPath + this.activeBranch.getName() + ".txt");
+    }
+
+    private void createBranchFile(String filePath) throws IOException {
+
+        File  nameHead=new File(filePath);
+        String branchFileData = readFromFile(filePath);
+
+        String[] partsForName = branchFileData.split(", ");
+
+        nameHead.delete();
+        nameHead = new File(filePath);
+        nameHead.createNewFile();
+
+        partsForName[0]=sha1Hex(this.activeBranch.getpCommit().toString());
+        String delimiter=", ";
+        Utility.writeToFile(partsForName[0]+delimiter+partsForName[1]+
+                delimiter+partsForName[2]+delimiter+partsForName[3], filePath);
+
     }
 
     private Folder createCommittedWC(File fileWCPath) throws IOException, ParseException {
@@ -1971,8 +2006,8 @@ public class Repository {
                 deleteDirectory(temp);
                 throw new Exception("The repository that you want to clone from doesnt exists!");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+           throw e;
         }
         ChangeRepository(pathRR); // for the instance
         setRemoteReference(RepositoryName, pathRR);
@@ -2078,8 +2113,8 @@ public class Repository {
         Utility.writeToFile(branchToString, path + branch.getName() + ".txt");
     }
 
-    public Commit showCommitData(){
-        return this.getActiveBranch().getpCommit();
+    public Commit showCommitData(String commitName) throws Exception {
+        return findBranch(commitName).getpCommit();
     }
 
     public boolean checkIfThereIsMoreConflicts() {

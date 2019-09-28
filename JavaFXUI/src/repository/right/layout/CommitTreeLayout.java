@@ -1,17 +1,15 @@
-//package right;
+//package repository.right.layout;
 //
 //import System.Commit;
 //import com.fxgraph.graph.Graph;
 //import com.fxgraph.graph.ICell;
 //import com.fxgraph.layout.Layout;
-//import com.sun.corba.se.impl.orbutil.graph.Graph;
-//import com.sun.java.util.jar.pack.Attribute;
 //
 //import java.util.*;
 //import java.util.stream.Collectors;
 //
-//// simple test for scattering commits in imaginary tree, where every 3rd node is in a new 'branch' (moved to the right)
-//public class CommitTreeLayout implements Attribute.Layout
+//// simple test for scattering commits in imaginary tree, where every 3rd  is in a new 'branch' (moved to the right)
+//public class CommitTreeLayout implements Layout
 //{
 //    private final Map<Commit, ICell> mf_MapCommitToIcell;
 //    private double m_LayoutX = 10;
@@ -188,7 +186,7 @@
 //    private void addPrevSha1AndCommit(Map<String, Commit> mapPrevSHA1ToCommitFather, Commit commit, Commit prevCommit)
 //    {
 //        if (thereIsPrevCommit(prevCommit))
-//            mapPrevSHA1ToCommitFather.put(prevCommit.getSha1(), commit);
+//            mapPrevSHA1ToCommitFather.put(prevCommit.getSHA1(), commit);
 //    }
 //
 //    private boolean thereIsPrevCommit(Commit i_GetPrevCommit)

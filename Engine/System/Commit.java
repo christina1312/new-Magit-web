@@ -83,6 +83,9 @@ public class Commit implements IZipable {
     public String getPrecedingCommit() {
         return precedingCommit;
     }
+    public String getSecondPrecedingCommit() {
+        return secondPrecedingCommit;
+    }
 
     @Override
     public void zipAnItem(String pathForSavingFile) throws IOException {

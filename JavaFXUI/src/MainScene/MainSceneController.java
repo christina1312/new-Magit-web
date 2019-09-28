@@ -8,6 +8,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -55,6 +56,8 @@ public class MainSceneController {
     private Button deleteButton;
     @FXML
     private Button CloneButton;
+    @FXML
+    private Button showCommitButton;
     @FXML
     private Button saveCollaborationButton;
     @FXML
@@ -115,6 +118,8 @@ public class MainSceneController {
     private TextField branchToDeleteText;
     @FXML
     private TextField inputTextField;
+    @FXML
+    private TextField currentCommitText;
     @FXML
     private Label progressPercentLabel;
     @FXML
@@ -315,12 +320,9 @@ public class MainSceneController {
                         makeTabsVisible();
                         AlertPromptDialog.show(m_Stage, "The new repository has been created successfully!", "loadXML");
 
-                    } catch (IOException ex) {
-                        turnOffLabelsSettingTab();
-                        AlertPromptDialog.show(m_Stage, "Error: " + ex, "loadXML");
-
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        turnOffLabelsSettingTab();
+                        AlertPromptDialog.show(m_Stage, "Error: " + ex.getMessage(), "loadXML");
                     }
                 });
             }
@@ -436,16 +438,21 @@ public class MainSceneController {
     }
 
     public void onShowCurrentCommitFileSystem() {
+        currentCommitText.setVisible(true);
+        showCommitButton.setVisible(true);
+    }
+
+    public void onShowCommit() throws Exception {
         turnOffWCCommitTab();
         turnOffLabelsCommitTab();
         turnOnGridsCommitTab();
         branchToDeteleLabel.setVisible(false);
         setRepositoryGridPane();
-        setCommitGridPane();
+        setCommitGridPane(currentCommitText.getText());
     }
 
-    private void setCommitGridPane() {
-        Commit newCommit = logic.showCommitData();
+    private void setCommitGridPane(String commitName) throws Exception {
+        Commit newCommit = logic.showCommitData(commitName);
         this.commitSha1Text.setText(newCommit.getSha1());
         this.commitmessageText.setText(newCommit.getMessage());
         this.commitDateOfCreationText.setText(newCommit.getDateCreated());
@@ -488,18 +495,20 @@ public class MainSceneController {
         turnOffDeleteScrollBranchTab();
         setCheckoutButtons();
 
-        EventHandler<ActionEvent> event = new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e) {
+        EventHandler<MouseEvent> event = new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
                 try {
                     turnOffDeleteLabelsBranchTab();
                     if (logic.CheckoutHeadBranch(branchToDeleteText.getText())) {
-                        if (AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "checkout") == 0) {
+                        int res = AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "checkout");
+                        if (res == 0) {
                             //delete all changes
                             logic.deleteWorkingCopyChanges();
                             logic.CheckoutHeadBranch(branchToDeleteText.getText());
                             AlertPromptDialog.show(m_Stage, "Checkout successfully!", "loadXML");
                         } else { // == 1 : commit
-                            //the user need to do commit in commit iab!!
+                            //the user need to do commit in commit tab!!
                         }
                     } else {
                         AlertPromptDialog.show(m_Stage, "Checkout successfully!", "loadXML");
@@ -511,7 +520,7 @@ public class MainSceneController {
                 }
             }
         };
-        deleteButton.setOnAction(event);
+        deleteButton.setOnMouseClicked(event);
     }
 
     //todo
@@ -553,7 +562,7 @@ public class MainSceneController {
     public void onSaveCollaboration() {
         try {
             turnOffCloneLables();
-            logic.cloneRepository(RRText.getText(), LRText.getText(), RepositoryNameText.getText());
+            logic.cloneRepository(RRText.getText(), LRText.getText(), RepositoryNameCollaborationText.getText());
             AlertPromptDialog.show(m_Stage, "The repository cloned successfully!", "loadXML");
 
         }
@@ -710,6 +719,7 @@ public class MainSceneController {
         InfoLabel.setVisible(true);
         InfoLabel.setText("");
         inputTextField.setVisible(true);
+        inputTextField.setText("");
         saveButton.setVisible(true);
         saveButton.setText("Save");
     }
@@ -738,6 +748,7 @@ public class MainSceneController {
     private void turnOffGridsCommitTab() {
         commitGridPane.setVisible(false);
         repositoryDetailsGridPane.setVisible(false);
+        currentCommitText.setVisible(false);
     }
 
     private void turnOffLabelsCommitTab() {
@@ -817,6 +828,7 @@ public class MainSceneController {
         workingCopyText.setVisible(false);
         workingCopyScroll.setVisible(false);
         workingCopyStatusLabel.setVisible(false);
+        showCommitButton.setVisible(false);
     }
 
     private void setAddNewBranchLabels(){
@@ -890,6 +902,7 @@ public class MainSceneController {
         BranchesTab.setDisable(false);
         MergaTab.setDisable(false);
         CollabortionTab.setDisable(false);
+
     }
 
     private void makeTabsDisible(){

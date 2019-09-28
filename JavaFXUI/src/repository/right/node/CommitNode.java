@@ -1,4 +1,4 @@
-//package right;
+//package repository.right.node;
 //
 //import com.fxgraph.cells.AbstractCell;
 //import com.fxgraph.graph.Graph;
@@ -53,7 +53,7 @@
 //            return root;
 //        } catch (IOException e)
 //        {
-//            return new Label("Error when tried to create graphic node !");
+//            return new Label("Error when tried to create graphic nod !");
 //        }
 //    }
 //

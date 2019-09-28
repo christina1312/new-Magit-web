@@ -144,8 +144,8 @@ public class BasicMAGitManager {
         return repository.getName();
     }
 
-    public Commit showCommitData() {
-        return repository.showCommitData();
+    public Commit showCommitData(String commitName) throws Exception {
+        return repository.showCommitData(commitName);
     }
 
     public void deleteWorkingCopyChanges() {
