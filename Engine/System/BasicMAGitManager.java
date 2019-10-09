@@ -117,9 +117,6 @@ public class BasicMAGitManager {
         return repository.checkIfEmptyRepositoryForUi();
     }
 
-    public boolean merge(String branchToMerge) throws Exception {
-        return repository.merge(branchToMerge);
-    }
 
     public void cloneRepository(String pathRR, String pathLR, String RepositoryName) throws Exception {
         repository.cloneRepository(pathRR, pathLR, RepositoryName);

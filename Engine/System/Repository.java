@@ -249,7 +249,6 @@ public class Repository {
                                 newBranch.setpCommit(newCommit);
                             }
                             if (!checkIfCommitExists(newCommit)) {
-                                // commitsList.add(newCommit);
                                 addCommitToCommitList(newCommit);
                             }
                             findNextCommit(newCommit.getPrecedingCommit(), newBranch, path, unZipFilesDir, false);
@@ -422,21 +421,11 @@ public class Repository {
         }
     }
 
-//    public void ShowAllBranchesFileSystem() {
-//        for (Branch branch : this.getBranchesList()) {
-//            if (branch.getIsActive()) {
-//                System.out.println("The head branch is: " + activeBranch.getName());
-//            }
-//            branch.showInfo();
-//        }
-//    }
-
     public String ShowAllBranchesFileSystem() {
         StringBuilder res=new StringBuilder();
         for (Branch branch : this.getBranchesList()) {
             if (branch.getIsActive()) {
-                // System.out.println("The head branch is: " + activeBranch.getName());
-                res.append("The head branch is: " + activeBranch.getName() + "\n");
+                res.append("***The head branch is: *** " + activeBranch.getName() + "\n");
             }
             //branch.showInfo();
             res.append(branch.showInfo());
@@ -716,7 +705,6 @@ public class Repository {
         return directoryToBeDeleted.delete();
     }
 
-    //chris
     public void deleteNotMagitDir() {
         File[] filesRepo = new File(location).listFiles();
         for (File currFile : filesRepo) {
@@ -766,7 +754,6 @@ public class Repository {
                 try {
                     foldersList.add(createBlob(item.getId(), path));
                 } catch (Exception ex) {
-                    //System.out.println(ex.getMessage());
                     throw new Exception(ex.getMessage());
                 }
             else if (item.getType().equalsIgnoreCase(Item.Type.FOLDER.toString())) {
@@ -809,7 +796,6 @@ public class Repository {
         Blob newBlob = null;
         for (MagitBlob blob : magitRepository.getMagitBlobs().getMagitBlob()) {
             if (blob.getId().equalsIgnoreCase(id)) {
-                // blob.getContent().replaceAll("\\s+", "");
                 newBlob = new Blob(blob.getName(), Item.Type.BLOB, new User(blob.getLastUpdater()), getTime(blob.getLastUpdateDate()), blob.getContent());
                 newBlob.setPath(path + "\\" + newBlob.getName());
             }
@@ -1315,13 +1301,11 @@ public class Repository {
         for (Map.Entry pair : wcMap.entrySet()) {
             if (wcMap.containsKey(pair.getKey())) {
                 if (!committedMap.containsKey(pair.getKey())) {
-                    // System.out.println("New file : " + pair.getKey());
                     res.append("New file : " + pair.getKey() + "\n");
                     flagChange = true;
                 } else // if(committedMap.containsKey((pair.getKey())))
                 {
                     if (!committedMap.containsValue(pair.getValue())) {
-                        //  System.out.println("Modified : " + pair.getKey());
                         res.append("Modified : " + pair.getKey() + "\n");
                         flagChange = true;
                     }
@@ -1330,13 +1314,11 @@ public class Repository {
         }
         for (Map.Entry pair : committedMap.entrySet()) {
             if (!wcMap.containsKey(pair.getKey())) {
-                //      System.out.println("Deleted : " + pair.getKey());
                 res.append("Deleted : " + pair.getKey() + "\n");
                 flagChange = true;
             }
         }
         if (!flagChange) {
-            //   System.out.println("No changes!");
             res.append("No changes! \n");
         }
         return res.toString();
@@ -1382,8 +1364,6 @@ public class Repository {
         newFolder.setRoot(true);
         Commit commit = new Commit(newFolder, commitDescription, this.user, getTime(), sha1Hex(activeBranch.getpCommit().toString()),null);
         commit.setPrecedingCommit(sha1Hex(this.getActiveBranch().getpCommit().toString()));
-        String dasfdas1 = newFolder.toString();
-        String dasfdas2=activeBranch.getpCommit().getRootFolder().toString();
 
         if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) {
             throw new Exception("There is no changes since the last commit.\n");
@@ -1394,7 +1374,6 @@ public class Repository {
         commitsList.add(commit);
         this.activeBranch.setpCommit(commit);
         createBranchFile(branchPath + this.activeBranch.getName() + ".txt");
- //       Utility.writeToFile(sha1Hex(this.activeBranch.getpCommit().toString()), branchPath + this.activeBranch.getName() + ".txt");
     }
 
     private void createBranchFile(String filePath) throws IOException {
@@ -1508,7 +1487,6 @@ public class Repository {
         return resFol;
     }
 
-
     private Folder findFolderInRepository(String sha1, String Path) {
         Folder currFolder = null;
         for (Commit commit : commitsList) {
@@ -1558,45 +1536,6 @@ public class Repository {
         return false;
     }
 
-    public boolean merge(String branchNameToMerge) throws Exception {
-        Branch branchToMerge;
-        Commit ancestorCommit;
-        try {
-            branchToMerge = findBranchByName(branchNameToMerge);
-            if (branchToMerge == null || branchNameToMerge == "") {
-                throw new Exception("branch was not found");
-            }
-        } catch (Exception ex) {
-            throw ex;
-        }
-
-        Boolean isThereOpenChanges = true;
-        File file = new File(location);
-        Folder newFolder = createCommittedWC(file);
-        if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) {
-            isThereOpenChanges = false;
-        }
-        if (isThereOpenChanges) {
-            return true;
-        }
-        try {
-            ancestorCommit = findAncestorFather(branchToMerge.getpCommit());
-            List<Item> headBranchChanges = compareToAncestorFather(this.getActiveBranch().getpCommit(), ancestorCommit);
-            List<Item> branchToMergeChanges = compareToAncestorFather(branchToMerge.getpCommit(), ancestorCommit);
-            //Commit commitAfterMerge = handleConflicts(headBranchChanges, branchToMergeChanges, ancestorCommit);
-            Commit commitAfterMerge=null;
-            commitsList.add(commitAfterMerge);
-            Utility.writeToFile(sha1Hex(this.activeBranch.getpCommit().toString()), branchPath + this.activeBranch.getName() + ".txt");
-            activeBranch.setpCommit(commitAfterMerge);
-        } catch (Exception ex) {
-            throw new Exception("Could not find commit for merge!");   }
-        deleteNotMagitDir();
-        CreateWC();
-
-        return false;
-    }
-
-
     public ArrayList<String> startMerge(String branchNameToMerge, int init) throws Exception {
        branchToMergeChangesIndex=init;
        headBranchChangesIndex=init;
@@ -1606,7 +1545,7 @@ public class Repository {
 
         try {
             branchToMerge = findBranchByName(branchNameToMerge);
-            if (branchToMerge == null || branchNameToMerge == "") {
+            if (branchToMerge == null || branchNameToMerge.equalsIgnoreCase("")) {
                 throw new Exception("branch was not found");
             }
         } catch (Exception ex) {
@@ -1651,8 +1590,6 @@ public class Repository {
         Blob headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex - 1);
         Blob blob = createNewBlobForMerge(type, content, headBranchBlob);
         commitAfterMerge.updateBlobInCommit(blob);
-       // branchToMergeChangesIndex++;
-     //   headBranchChangesIndex++;
 
         if(branchToMergeChangesIndex == branchToMergeChangesSize) {
             branchToMergeConflict = false;
@@ -1837,9 +1774,6 @@ public class Repository {
             }
         }
 
-      //  headBranchChangeCheck(headBranchChangesSize, commitAfterMerge,headBranchChanges);
-       // branchToMergeChangesCheck(branchToMergeChangesSize,commitAfterMerge, branchToMergeChanges);
-
         return solvedConflictBlob;
     }
 
@@ -1848,34 +1782,6 @@ public class Repository {
           blob.setTypeOfChangeset(type);
           blob.setPath(headBranchBlob.getPath());
         return blob;
-    }
-
-    private void headBranchChangeCheck(int BranchChangesSize, Commit commitAfterMerge, List<Item> BranchChanges) {
-        Blob headBranchBlob;
-        if (headBranchChangesIndex != BranchChangesSize) {
-            headBranchBlob = (Blob) headBranchChanges.get(headBranchChangesIndex);
-            commitAfterMerge.updateBlobInCommit(headBranchBlob);
-            headBranchChangesIndex++;
-        }
-        if (headBranchChangesIndex == BranchChangesSize) {
-            headBranchConflict = false;
-        } else {
-            headBranchConflict = true;
-        }
-    }
-
-    public void branchToMergeChangesCheck( int branchToMergeChangesSize, Commit commitAfterMerge,  List<Item> branchToMergeChanges) {
-        Blob branchToMergeBlob;
-        if (branchToMergeChangesIndex != branchToMergeChangesSize) {
-            branchToMergeBlob = (Blob) branchToMergeChanges.get(branchToMergeChangesIndex);
-            commitAfterMerge.updateBlobInCommit(branchToMergeBlob);
-            branchToMergeChangesIndex++;
-        }
-            if(branchToMergeChangesIndex  == branchToMergeChangesSize) {
-                branchToMergeConflict = false;
-            } else{
-                branchToMergeConflict=true;
-            }
     }
 
     private ArrayList <String>  solveConflictsForUI(Blob headBranchBlob, Blob branchToMergeBlob, Blob blobInAncsterFather){
@@ -1888,7 +1794,6 @@ public class Repository {
             resList.add(branchToMergeBlob.getContent());//branch to merge
             resList.add("new");
             resList.add("new");
-
         }
         if (headBranchBlobChange.equalsIgnoreCase("deleted"))
         {
@@ -1906,7 +1811,6 @@ public class Repository {
                 resList.add("");//branch to merge
                 resList.add("deleted");
                 resList.add("deleted");
-
             }
         }
         if (headBranchBlobChange.equalsIgnoreCase("modified")) {
@@ -1916,7 +1820,6 @@ public class Repository {
                 resList.add(branchToMergeBlob.getContent());//branch to merge
                 resList.add("modified");
                 resList.add("modified");
-
             }
             if (branchToMergeBlobChange.equalsIgnoreCase("deleted")) {
                 resList.add(blobInAncsterFather.getContent()); //father
@@ -1928,75 +1831,6 @@ public class Repository {
         }
         return resList;
     }
-
-//    private Blob solveConflicts(Blob headBranchBlob, Blob branchToMergeBlob, Blob blobInAncsterFather) {
-//
-//        String headBranchBlobChange = headBranchBlob.getTypeOfChangeset().toString();
-//        String branchToMergeBlobChange = branchToMergeBlob.getTypeOfChangeset().toString();
-//        if (headBranchBlobChange.equalsIgnoreCase("new")) {
-//            if (branchToMergeBlobChange.equalsIgnoreCase("new")) {
-//                System.out.println("The File: " + headBranchBlob.getPath() + " has created in both branches, choose what do you wanna do:");
-//                System.out.println(headBranchBlob.getPath() + " in the base branch is: " + headBranchBlob.getContent() + "\n-----------------------------------");
-//                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
-//                System.out.println("copy and paste the text you would like to have in the new file : ");
-//                String content = "new + new ";
-//                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
-//                blob.setTypeOfChangeset(Item.TypeOfChangeset.NEW);
-//                blob.setPath(headBranchBlob.getPath());
-//                return blob;
-//            }
-//            //todo verify if we can get another conflicts here (new + deleted,new + modified)
-//        }
-//        if (headBranchBlobChange.equalsIgnoreCase("deleted"))
-//        {
-//            if (branchToMergeBlobChange.equalsIgnoreCase("modified")) {
-//                System.out.println("The File: " + headBranchBlob.getPath() + " has deleted in head branch, and modified on the other, choose what do you wanna do:");
-//                System.out.println(blobInAncsterFather.getPath() + " in the mutual commit is: " + blobInAncsterFather.getContent() + "\n-----------------------------------");
-//                System.out.println(headBranchBlob.getPath() + " in the base branch is: " + headBranchBlob.getContent() + "\n-----------------------------------");
-//                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
-//                System.out.println("copy and paste the text you would like to have in the new file : ");
-//                String content = "deleted in head + modified in branchhtomerged"; //todo need to get from user the desired file
-//                //todo if "deleted" chosen need to delete file else need to create and return new blob
-//                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
-//                blob.setTypeOfChangeset(Item.TypeOfChangeset.MODIFIED);
-//                blob.setPath(headBranchBlob.getPath());
-//
-//                return blob;
-//            }
-//            if (branchToMergeBlobChange.equalsIgnoreCase("deleted")) {
-//                System.out.println("File deleted in both branches, file will be deleted.");
-//                return branchToMergeBlob;
-//            }
-//        }
-//        if (headBranchBlobChange.equalsIgnoreCase("modified")) {
-//            if (branchToMergeBlobChange.equalsIgnoreCase("modified")) {
-//                System.out.println("The File: " + headBranchBlob.getPath() + " has modified in both branches. ");
-//                System.out.println(blobInAncsterFather.getPath() + " in the mutual commit is:\n " + blobInAncsterFather.getContent() + "\n-----------------------------------");
-//                System.out.println(headBranchBlob.getPath() + " in the base branch is:\n " + headBranchBlob.getContent() + "\n-----------------------------------");
-//                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
-//                System.out.println("copy and paste the text you would like to have in the new file : ");
-//                String content = "modified x2"; //todo need to get from user the desired file
-//                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
-//                blob.setTypeOfChangeset(Item.TypeOfChangeset.MODIFIED);
-//                blob.setPath(headBranchBlob.getPath());
-//                return blob;
-//
-//            }
-//            if (branchToMergeBlobChange.equalsIgnoreCase("deleted")) {
-//                System.out.println("The File: " + headBranchBlob.getPath() + " has deleted in  branchtomerge, and modified on the other, choose what do you wanna do:");
-//                System.out.println(blobInAncsterFather.getPath() + " in the mutual commit is: " + blobInAncsterFather.getContent() + "\n-----------------------------------");
-//                System.out.println(headBranchBlob.getPath() + " in the base branch is: " + headBranchBlob.getContent() + "\n-----------------------------------");
-//                System.out.println(branchToMergeBlob.getPath() + " in the branch to merge is: " + branchToMergeBlob.getContent() + "\n-----------------------------------");
-//                System.out.println("copy and paste the text you would like to have in the new file : ");
-//                String content = "modified in head + deleted on branchhtomerged"; //todo need to get from user the desired file
-//                //todo if "deleted" chosen need to delete file else need to create and return new blob
-//                Blob blob = new Blob(headBranchBlob.getName(), headBranchBlob.getType(), user, getTime(), content);
-//                blob.setTypeOfChangeset(Item.TypeOfChangeset.MODIFIED);
-//                return blob;
-//            }
-//        }
-//        return null;
-//    }
 
     private void addCommitToCommitList(Commit newCommit){
         if(!this.getCommitsList().contains(newCommit))
@@ -2057,10 +1891,14 @@ public class Repository {
         if(this.remote.getLocation()== null){
             throw new Exception("There is no remote repository");
         }
+
     }
 
    public void fetch() throws Exception {
        isFetching=true;
+       if(remote.getName()== null || remote.getLocation()==null){
+           throw new Exception("There is no remote repository!");
+       }
        String pathRR = this.remote.getLocation() + "\\.magit\\branches";
        String pathLR = this.location + "\\.magit\\branches";
        File[] branchesRR = new File(pathRR).listFiles();
@@ -2079,6 +1917,7 @@ public class Repository {
        fixItemsPathes(remote.getLocation(),location);//todo ooo
        isFetching=false;
    }
+
     private void calculateAndCopyToLR(String name) throws Exception {
         Branch newBranch;
         String branchName=name.replace(".txt","");
@@ -2103,13 +1942,11 @@ public class Repository {
             deleteBranchFromList(remote.getName()+ "\\"+ branchName);
 
             findNextCommit(sha1, newBranch, this.remote.getLocation(), unZipFilesDir, true);
-
             CreateSpecificBranchesFile(newBranch, this.location + "\\.magit\\branches\\");
             branchesList.add(newBranch);
-
         }
-
     }
+
     private void copyAllSubTreeToLR(String name) throws Exception {
         Branch newBranch;
         String trackingAfter = null;
@@ -2139,9 +1976,6 @@ public class Repository {
         findNextCommit(sha1, newBranch, this.remote.getLocation(), unZipFilesDir, true);
         this.branchesList.add(newBranch);
         FileUtils.copyFile(tmpFile, new File(pathLR, tmpFile.getName()));
-
-        //copy the folders in objects
-        //ZipAllItemInRepository(this.location + "\\.magit\\objects"); // ???
     }
     private void CreateSpecificBranchesFile(Branch branch, String path) throws IOException {
         String delimiter = ", ";
@@ -2181,6 +2015,7 @@ public class Repository {
         }
         branchesList.addAll(currbranchesList);
     }
+
     public void fixItemsPathes(String wrongPath, String correctPath) {
         String[] partsOfWrongPath = wrongPath.split("\\\\");
         String[] partsOFCorrectPath = correctPath.split("\\\\");
@@ -2188,11 +2023,10 @@ public class Repository {
         correctPath = partsOFCorrectPath[partsOFCorrectPath.length - 1];
         for (Branch branch : branchesList)
         {
-            branch.getpCommit().fixItemsPathes(wrongPath, correctPath);
+            branch.getpCommit().fixItemsPaths(wrongPath, correctPath);
         }
         for (Commit commit : commitsList) {
-            commit.fixItemsPathes(wrongPath, correctPath);
+            commit.fixItemsPaths(wrongPath, correctPath);
         }
-
     }
 }

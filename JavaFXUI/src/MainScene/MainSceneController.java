@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.text.ParseException;
 import java.util.ArrayList;
 
 import System.Commit;
@@ -28,7 +29,7 @@ public class MainSceneController {
 
     private Task<Boolean> fileLoadTask;
     private boolean m_isGameLoaded;
-    private boolean m_isFirstChange=false;
+    private boolean m_isFirstChange = false;
     private File m_file;
 
     private final static int SLEEP_PERIOD = 100;
@@ -385,15 +386,15 @@ public class MainSceneController {
                         Bindings.format(
                                 "%.0f",
                                 Bindings.multiply(fileLoadTask.progressProperty(),
-                                Bindings.multiply(fileLoadTask.progressProperty(),
-                                        100)),
-                        " %")));
+                                        Bindings.multiply(fileLoadTask.progressProperty(),
+                                                100)),
+                                " %")));
 
         fileLoadTask.messageProperty().addListener((observable, oldValue, newValue) -> progressPercentLabel.setText(newValue));
         Thread thread = new Thread(fileLoadTask);
         thread.start();
         this.progressPercentLabel.textProperty().unbind();
-       // thread.join();
+        // thread.join();
     }
 
     public void onChangeUserName() {
@@ -445,20 +446,19 @@ public class MainSceneController {
     }
 
     public void onShowCommit() {
-      try {
-          turnOffWCCommitTab();
-          turnOffLabelsCommitTab();
-          turnOnGridsCommitTab();
-          currentCommitText.setVisible(false);
-          branchToDeteleLabel.setVisible(false);
-          setRepositoryGridPane();
-          setCommitGridPane(currentCommitText.getText());
-      }
-      catch(Exception ex){
-          turnOffGridsCommitTab();
-          AlertPromptDialog.show(m_Stage, "Error : " + ex.getMessage(), "loadXML");
+        try {
+            turnOffWCCommitTab();
+            turnOffLabelsCommitTab();
+            turnOnGridsCommitTab();
+            currentCommitText.setVisible(false);
+            branchToDeteleLabel.setVisible(false);
+            setRepositoryGridPane();
+            setCommitGridPane(currentCommitText.getText());
+        } catch (Exception ex) {
+            turnOffGridsCommitTab();
+            AlertPromptDialog.show(m_Stage, "Error : " + ex.getMessage(), "loadXML");
 
-      }
+        }
     }
 
     private void setCommitGridPane(String commitName) throws Exception {
@@ -489,7 +489,7 @@ public class MainSceneController {
                 try {
                     turnOffDeleteLabelsBranchTab();
                     logic.DeleteBranch(branchToDeleteText.getText());
-                    AlertPromptDialog.show(m_Stage,"The branch was deleted successfully!", "loadXML");
+                    AlertPromptDialog.show(m_Stage, "The branch was deleted successfully!", "loadXML");
 
                 } catch (Exception ex) {
                     turnOffDeleteLabelsBranchTab();
@@ -524,7 +524,7 @@ public class MainSceneController {
                     } else {
                         AlertPromptDialog.show(m_Stage, "Checkout successfully!", "loadXML");
                     }
-                }catch (Exception ex) {
+                } catch (Exception ex) {
                     turnOffDeleteLabelsBranchTab();
                     AlertPromptDialog.show(m_Stage, "Error : " + ex.getMessage(), "loadXML");
 
@@ -534,7 +534,6 @@ public class MainSceneController {
         deleteButton.setOnMouseClicked(event);
     }
 
-    //todo
     public void onResetBranchLocation() {
         turnOnDeleteLabelsBranchTab();
         setResetButtons();
@@ -542,19 +541,17 @@ public class MainSceneController {
         EventHandler<ActionEvent> event = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 try {
-                    if(logic.checkIfThereIsChanges()) {
-                        if(AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "reset")==0){
+                    if (logic.checkIfThereIsChanges()) {
+                        if (AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "reset") == 0) {
                             //delete all changes
                             logic.deleteWorkingCopyChanges();
                             logic.resetHeadBranch(branchToDeleteText.getText());
                             turnOffDeleteLabelsBranchTab();
-                            AlertPromptDialog.show(m_Stage,"Reset the head branch successfully!", "loadXML");
-                        }
-                        else{ // == 1 : commit
+                            AlertPromptDialog.show(m_Stage, "Reset the head branch successfully!", "loadXML");
+                        } else { // == 1 : commit
                             //the user need to do commit in commit tab!!
                         }
-                    }
-                    else {
+                    } else {
                         turnOffDeleteLabelsBranchTab();
                         AlertPromptDialog.show(m_Stage, "Reset the head branch successfully!", "loadXML");
                     }
@@ -566,7 +563,7 @@ public class MainSceneController {
         deleteButton.setOnAction(event);
     }
 
-    public void onClone(){
+    public void onClone() {
         turnOnCloneLables();
     }
 
@@ -576,39 +573,42 @@ public class MainSceneController {
             logic.cloneRepository(RRText.getText(), LRText.getText(), RepositoryNameCollaborationText.getText());
             AlertPromptDialog.show(m_Stage, "The repository cloned successfully!", "loadXML");
 
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             AlertPromptDialog.show(m_Stage, "Error: " + ex.getMessage(), "loadXML");
         }
     }
-    public void onFetch(){
+
+    public void onFetch() {
         try {
+            turnOffCloneLables();
             logic.fetch();
             AlertPromptDialog.show(m_Stage, "Fetched successfully!", "loadXML");
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             AlertPromptDialog.show(m_Stage, "Error: " + ex.getMessage(), "loadXML");
         }
     }
-    public void onPush(){
+
+    public void onPush() {
         try {
+            turnOffCloneLables();
             logic.push();
             AlertPromptDialog.show(m_Stage, "Pushed successfully!", "loadXML");
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             AlertPromptDialog.show(m_Stage, "Error: " + ex.getMessage(), "loadXML");
         }
 
     }
-    public void onPull(){
+
+    public void onPull() {
         try {
+            turnOffCloneLables();
             logic.pull();
-            AlertPromptDialog.show(m_Stage, "Pulled successfully!", "loadXML");
+                AlertPromptDialog.show(m_Stage, "Pulled successfully!", "loadXML");
         }
         catch(Exception ex){
-            AlertPromptDialog.show(m_Stage, "Error: " + ex.getMessage(), "loadXML");
-        }
-    }
+           AlertPromptDialog.show(m_Stage, "Error: " + ex.getMessage(), "loadXML");
+         }
+}
 
     public void onCheckConflicts() {
         try {
@@ -620,7 +620,7 @@ public class MainSceneController {
             } else if (res.get(0).equalsIgnoreCase("TRUE")) {
                 if (AlertPromptDialog.show(m_Stage, "There are uncommitted changes", "checkout") == 0) {
                     logic.deleteWorkingCopyChanges();
-                    logic.CheckoutHeadBranch(branchMergeText.getText()); //todo
+                    logic.CheckoutHeadBranch(branchMergeText.getText());
                 } else { //the user need to do commit in commit iab!!
                 }
             } else {// father, me, branch to merge

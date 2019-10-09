@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Class-Path: commons-io-2.6.jar commons-codec-1.12.jar commons-collecti
- ons4-4.3.jar
+Class-Path: commons-codec-1.12.jar commons-io-2.6.jar fxgraph-0.0.3.ja
+ r commons-collections4-4.3.jar AncestorFinder.jar
 Main-Class: 
 

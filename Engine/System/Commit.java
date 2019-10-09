@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static System.Repository.checkIfSha1Exists;
 import static System.Repository.getTime;
 import static org.apache.commons.codec.digest.DigestUtils.sha1Hex;
 
@@ -96,7 +95,6 @@ public class Commit implements IZipable {
         temp.deleteOnExit();
         Utility.writeToFile(tempStr, temp.getPath());
         try {
-            //if (!checkIfSha1Exists(sha1Hex(tempStr))) {
                 File i_FileForZip = new File(temp.getAbsolutePath());
                 File fileToZip = new File(i_FileForZip.getAbsolutePath());
                 FileOutputStream fos = new FileOutputStream(pathForSavingFile + "\\" + fileName);
@@ -112,7 +110,6 @@ public class Commit implements IZipable {
                 zipOut.close();
                 fis.close();
                 fos.close();
-          //  }
         } catch (Exception ex) {
           // throw new Exception("Fail to zip a commit");
         }
@@ -144,7 +141,6 @@ public class Commit implements IZipable {
     public void updateBlobInCommit(Blob blob) {
         String path = blob.getPath();
         String[] partsForPath = path.split("\\\\");
-        //String name = partsForPath[partsForPath.length - 1];
         int indexToStart = 0;
         Folder currFolder = this.rootFolder;
         for (int i = 0; i < partsForPath.length; i++) {
@@ -153,7 +149,6 @@ public class Commit implements IZipable {
                 break;
             }
         }
-        //todo need to verify start index
         createBlobInCommitRec(currFolder, partsForPath, indexToStart, blob);
     }
 
@@ -210,7 +205,7 @@ public class Commit implements IZipable {
 
     public String getCreatedBy(){ return this.user.toString();}
 
-    public  void fixItemsPathes(String wrongPath, String correctPath)
+    public  void fixItemsPaths(String wrongPath, String correctPath)
     {
         this.rootFolder.fixItemsPathes(wrongPath,correctPath);
         this.rootFolder.changePath(wrongPath,correctPath);
