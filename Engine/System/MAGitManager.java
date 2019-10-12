@@ -27,7 +27,7 @@ public class MAGitManager {
         return Collections.unmodifiableMap(RepositorySetName);
     }
 
-    public boolean isGameExists(String username) {
+    public boolean isRepositoryExists(String username) {
         return RepositorySetName.containsKey(username);
     }
 }
