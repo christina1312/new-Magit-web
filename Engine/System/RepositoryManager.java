@@ -1,29 +1,29 @@
 package System;
 
 import java.util.*;
-public class MAGitManager {
+public class RepositoryManager {
 
     private final Map<String,String> RepositorySetName; // file name+ url
-    private final Map<String,BasicMAGitManager> ReposirotyMap; //file name + BasicMAGitManager
+    private final Map<String,BasicMAGitManager> RepositoryMap; //file name + BasicMAGitManager
 
-    public MAGitManager() {
+    public RepositoryManager() {
         RepositorySetName = new HashMap<>();
-        ReposirotyMap = new HashMap<>();
+        RepositoryMap = new HashMap<>();
     }
 
-    public void addRepository(String fileName, String Url ,String userName) throws Exception {
+    public void addRepository(String fileName, String Url) throws Exception {
         BasicMAGitManager BasicManager = new BasicMAGitManager();
         BasicManager.LoadMAGit(Url);
         RepositorySetName.put(fileName, Url);
-        ReposirotyMap.put(fileName,BasicManager);
+        RepositoryMap.put(fileName,BasicManager);
     }
 
     public void removeRepository(String username) {
         RepositorySetName.remove(username);
-        ReposirotyMap.remove(username);
+        RepositoryMap.remove(username);
     }
 
-    public Map<String,String> getReposiroty() {
+    public Map<String,String> getRepository() {
         return Collections.unmodifiableMap(RepositorySetName);
     }
 
