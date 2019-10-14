@@ -18,10 +18,15 @@ public class BasicMAGitManager {
         repository = new Repository(user);
     }
 
+    public BasicMAGitManager(String newUser) {
+        user = new User(newUser);
+        repository = new Repository(user);
+    }
+
     //chris
-    public boolean LoadMAGit(String xmlPath) throws Exception {
+    public boolean LoadMAGit(String xmlPath, String userName) throws Exception {
         if (checkIfPathExists(xmlPath)) {
-            return repository.LoadMAGit(xmlPath);
+            return repository.LoadMAGit(xmlPath, userName);
         } else
             throw new Exception("Could not find file in this path");
     }
@@ -96,11 +101,8 @@ public class BasicMAGitManager {
         File subDirectoryBranches = new File(directory.getPath() + "\\branches");
         File subDirectoryObjects = new File(directory.getPath() + "\\objects");
 
-        if (!subDirectoryBranches.exists() || !subDirectoryBranches.isDirectory() ||
-                !subDirectoryObjects.exists() || !subDirectoryObjects.isDirectory()) {
-            return false;
-        }
-        return true;
+        return subDirectoryBranches.exists() && subDirectoryBranches.isDirectory() &&
+                subDirectoryObjects.exists() && subDirectoryObjects.isDirectory();
     }
 
     private boolean checkIfPathExists(String path) throws Exception {
@@ -181,6 +183,23 @@ public class BasicMAGitManager {
     public void pull() throws Exception {
         repository.pull();
     }
+
+    public String getRepositoryActiveBranch(){
+        return repository.getActiveBranch().getName();
+    }
+
+    public int getRepositoryBranchCount(){
+        return repository.getRepositoryBranchCount();
+    }
+
+    public String getRepositoryLastCommitTime(){
+        return repository.getActiveBranch().getpCommit().getDateCreated();
+    }
+
+    public String getRepositoryLastCommitMessage(){
+        return repository.getActiveBranch().getpCommit().getMessage();
+    }
+
 }
 
 

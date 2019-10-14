@@ -49,7 +49,7 @@ public class Repository {
     private boolean headBranchConflict=true;
     private boolean branchToMergeConflict=true;
     private boolean isInternalBranchFolderCreated=false;
-    private boolean  isRepoCloned=false;;
+    private boolean  isRepoCloned=false;
     static boolean isFetching=false;
 
     public Repository(User user){
@@ -61,7 +61,7 @@ public class Repository {
 
     private Scanner s = new Scanner(System.in);
 
-    private Branch getActiveBranch() {
+    public Branch getActiveBranch() {
         return activeBranch;
     }
 
@@ -119,8 +119,8 @@ public class Repository {
         });
     }
 
-    public boolean LoadMAGit(String xmlPath) throws Exception {
-        if(LoadFile(xmlPath))
+    public boolean LoadMAGit(String xmlPath, String userName) throws Exception {
+        if(LoadFile(xmlPath, userName))
             return true;
         if (!checkIfEmptyRepository() && !repositoryChanged) {
             ZipAllItemInRepository(this.location + "\\.magit\\objects");
@@ -557,10 +557,7 @@ public class Repository {
         if (sha1Hex(newFolder.toString()).equalsIgnoreCase(sha1Hex(activeBranch.getpCommit().getRootFolder().toString()))) {
             isThereOpenChanges = false;
         }
-        if (isThereOpenChanges) {
-            return true;
-        }
-        return false;
+        return isThereOpenChanges;
     }
 
     public void deleteWorkingCopyChanges() {
@@ -618,9 +615,10 @@ public class Repository {
     }
 
     // Aux function !!
-    private boolean LoadFile(String xmlPath) throws Exception {
+    private boolean LoadFile(String xmlPath, String userName) throws Exception {
 
         File file = new File(xmlPath);
+        String newLocation = null;
         try {
             if (!file.exists())
                 throw new Exception("File is not exists \n");
@@ -629,7 +627,8 @@ public class Repository {
             magitRepository = deserializeFromFile(file);
 
             if (magitRepository != null) {
-                if(CreateRealRepository(magitRepository.getLocation()))
+                newLocation="C:\\magit-ex3\\"+userName;
+                if(CreateRealRepository(newLocation))
                     return true;
 
             } else
@@ -672,6 +671,9 @@ public class Repository {
     private boolean CreateRealRepository(String address) throws Exception {
 
         validateXmlFile();
+        this.name = magitRepository.getName();
+        address=address+"\\"+this.name;
+        this.location=address;
         File directory = new File(address);
         File subDirectory = new File(directory.getPath() + "\\.magit");
         File[] filesRepo = new File(address).listFiles();
@@ -681,18 +683,18 @@ public class Repository {
 
         } else// there is no .magit
         {
-            if (filesRepo != null ? filesRepo.length > 0 : false) {
+            if (filesRepo != null && filesRepo.length > 0) {
                 return true; // repo exists
             } else {
-                buildRepositoryinGivenPath();
+                buildRepositoryinGivenPath(address);
             }
         }
         return false;
     }
 
     public void DeleteRepositoryAndCreateNew(String address) throws Exception {
-        deleteDirectory(new File(address));
-        buildRepositoryinGivenPath();
+    //    deleteDirectory(new File(address)); todo
+     //   buildRepositoryinGivenPath();
     }
 
     private boolean deleteDirectory(File directoryToBeDeleted) {
@@ -714,9 +716,10 @@ public class Repository {
         }
     }
 
-    private void buildRepositoryinGivenPath() throws Exception {
+    private void buildRepositoryinGivenPath(String address) throws Exception {
         try {
-            this.name = magitRepository.getName();
+           // this.name = magitRepository.getName();
+           // this.location=address+this.name;
             makeDirectories(this.getLocation());
             if (!checkIfEmptyRepository()) {
                 BuildCommitList();
@@ -1591,16 +1594,8 @@ public class Repository {
         Blob blob = createNewBlobForMerge(type, content, headBranchBlob);
         commitAfterMerge.updateBlobInCommit(blob);
 
-        if(branchToMergeChangesIndex == branchToMergeChangesSize) {
-            branchToMergeConflict = false;
-        } else{
-            branchToMergeConflict=true;
-        }
-        if (headBranchChangesIndex == headBranchChangesSize) {
-            headBranchConflict = false;
-        } else {
-            headBranchConflict = true;
-        }
+        branchToMergeConflict = branchToMergeChangesIndex != branchToMergeChangesSize;
+        headBranchConflict = headBranchChangesIndex != headBranchChangesSize;
     }
 
     private Item.TypeOfChangeset checkBlobType(String check){
@@ -2028,5 +2023,9 @@ public class Repository {
         for (Commit commit : commitsList) {
             commit.fixItemsPaths(wrongPath, correctPath);
         }
+    }
+
+    public int getRepositoryBranchCount(){
+        return this.branchesList.size();
     }
 }
