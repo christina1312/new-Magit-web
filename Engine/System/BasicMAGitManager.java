@@ -188,7 +188,7 @@ public class BasicMAGitManager {
         return repository.getActiveBranch().getName();
     }
 
-    public int getRepositoryBranchCount(){
+    public String getRepositoryBranchCount(){
         return repository.getRepositoryBranchCount();
     }
 

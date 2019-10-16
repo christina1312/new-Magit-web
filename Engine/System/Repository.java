@@ -2025,7 +2025,7 @@ public class Repository {
         }
     }
 
-    public int getRepositoryBranchCount(){
-        return this.branchesList.size();
+    public String getRepositoryBranchCount(){
+        return String.valueOf(this.branchesList.size());
     }
 }
