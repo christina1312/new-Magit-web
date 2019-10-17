@@ -35,8 +35,7 @@ public class GitManager {
     public List<Notification> getUserNotification(String username) {
         if (!UsersNotifications.containsKey(username)) {
             NotificationManager manager = new NotificationManager();
-            manager.addNotification(new Notification("There is no notification !", new Date(System.currentTimeMillis())));
-            UsersNotifications.put(username, manager);
+            UsersNotifications.put(username,manager);
         }
         return UsersNotifications.get(username).getNotificationList();
     }
@@ -49,6 +48,15 @@ public class GitManager {
                 .collect(Collectors.toList());
     }
 
+    public BasicMAGitManager getRepositoryByUserName(String userName,String repoName) {
+        List<BasicMAGitManager> repoList = getRepositoriesByUserName(userName);
+        for(BasicMAGitManager repo : repoList){
+            if(repo.getRepositoryName().equalsIgnoreCase(repoName)){
+                return repo;
+            }
+        }
+        return null;
+    }
     public boolean isRepositoryExists(String username) {
         return GitSetName.containsKey(username);
     }

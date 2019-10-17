@@ -200,6 +200,9 @@ public class BasicMAGitManager {
         return repository.getActiveBranch().getpCommit().getMessage();
     }
 
+    public String getRRName(){
+        return repository.getRRName();
+    }
 }
 
 

@@ -2028,4 +2028,8 @@ public class Repository {
     public String getRepositoryBranchCount(){
         return String.valueOf(this.branchesList.size());
     }
+
+    public String getRRName(){
+        return this.remote.getName();
+    }
 }
