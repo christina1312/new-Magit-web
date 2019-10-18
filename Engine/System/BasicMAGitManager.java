@@ -7,16 +7,12 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class BasicMAGitManager {
 
     private Repository repository;
     private User user;
-
-    public BasicMAGitManager() {
-        user = new User();
-        repository = new Repository(user);
-    }
 
     public BasicMAGitManager(String newUser) {
         user = new User(newUser);
@@ -202,6 +198,10 @@ public class BasicMAGitManager {
 
     public String getRRName(){
         return repository.getRRName();
+    }
+
+    public Set<String> getbranchsNameList(){
+        return repository.getbranchsNameList();
     }
 }
 

@@ -2032,4 +2032,13 @@ public class Repository {
     public String getRRName(){
         return this.remote.getName();
     }
+
+    public Set<String> getbranchsNameList(){
+        Set <String> res= new HashSet<>();
+
+        for(Branch branch : branchesList)
+            res.add(branch.getName());
+
+        return res;
+    }
 }
