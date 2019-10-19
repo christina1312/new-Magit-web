@@ -93,7 +93,7 @@ public class Repository {
         return branchesList;
     }
 
-    private List<Commit> getCommitsList() {
+    public List<Commit> getCommitsList() {
         return commitsList;
     }
 
@@ -2040,5 +2040,38 @@ public class Repository {
             res.add(branch.getName());
 
         return res;
+    }
+
+    public  String getHeadBranch(){
+        return activeBranch.getName();
+    }
+
+    public List<String> getCommitsFileslist(String commitName) {
+        List<String> res= new ArrayList<>();
+        Commit commit = findCommitInCommitList(commitName);
+        Folder rootFolder = commit.getRootFolder();
+        res =getCurrentCommitFileSystemRec(rootFolder, this.getLocation(), res);
+        res.remove(rootFolder.getName());
+        return res;
+    }
+
+    private List<String> getCurrentCommitFileSystemRec(Item item, String location, List<String> res) {
+        res.add(item.getName());
+
+        if (item.getType().toString().equalsIgnoreCase(Item.Type.FOLDER.toString())) {
+            Folder folder = (Folder) item;
+            for (Item currItem : folder.getItemsArray()) {
+                getCurrentCommitFileSystemRec(currItem, location + "\\" + item.getName(), res);
+            }
+        }
+        return res;
+    }
+
+    public List<String> calculateDelta (String branchName){ // todo
+        return null;
+    }
+
+    public void pushAllChanges(List<String> delta){ //todo
+
     }
 }

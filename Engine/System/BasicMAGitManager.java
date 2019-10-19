@@ -203,6 +203,25 @@ public class BasicMAGitManager {
     public Set<String> getbranchsNameList(){
         return repository.getbranchsNameList();
     }
+
+    public String getHeadBranch(){
+        return repository.getHeadBranch();
+    }
+
+    public List<Commit> getCommitList(){
+        return repository.getCommitsList();
+    }
+
+    public List<String> getCommitsFileslist(String commitName){
+        return repository.getCommitsFileslist(commitName);
+    }
+    public List<String> calculateDelta (String branchName){
+        return repository.calculateDelta(branchName);
+    }
+
+    public void pushAllChanges(List<String> delta){
+        repository.pushAllChanges(delta);
+    }
 }
 
 
